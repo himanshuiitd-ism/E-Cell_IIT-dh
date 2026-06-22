@@ -261,7 +261,7 @@ app.post("/api/save", async (req, res) => {
 
   if (!page_path) page_path = "/";
   // Normalize admin routes and extension routes to match schema layout keys
-  if (page_path === "/admin/iit") page_path = "/";
+  if (page_path === "/admin/iit_ism_1290e-summit") page_path = "/";
   if (page_path === "/members" || page_path === "/admin/members") page_path = "/members.html";
 
   try {
@@ -367,7 +367,7 @@ const serveMembersPage = async (req, res) => {
 };
 
 app.get("/", serveIndex);
-app.get("/admin/iit", serveIndex);
+app.get("/admin/iit_ism_1290e-summit", serveIndex);
 
 app.get("/members", serveMembersPage);
 app.get("/members.html", serveMembersPage);
@@ -375,5 +375,5 @@ app.get("/admin/members", serveMembersPage);
 
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
-  console.log(`Admin Mode accessible at http://localhost:${PORT}/admin/iit`);
+  console.log(`Admin Mode accessible at http://localhost:${PORT}/admin/iit_ism_1290e-summit`);
 });

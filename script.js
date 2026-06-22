@@ -221,7 +221,11 @@ animateCursor();
 if (typeof lucide !== 'undefined') {
   lucide.createIcons();
 }
-const API_BASE_URL = window.location.origin.includes("localhost:3000") ? "" : "http://localhost:3000";
+const API_BASE_URL = 
+  (window.location.hostname === "localhost" && window.location.port !== "3000" && window.location.port !== "") ||
+  (window.location.hostname === "127.0.0.1" && window.location.port !== "3000" && window.location.port !== "")
+    ? "http://localhost:3000" 
+    : "";
 
 async function loadMembers() {
   try {
@@ -277,7 +281,7 @@ async function initTeam() {
   // Check if already authenticated or visiting the admin route/query/hash
   const isAuthSession = sessionStorage.getItem("admin_authenticated") === "true";
   const isAdminRoute = 
-    window.location.pathname === "/admin/iit" ||
+    window.location.pathname === "/admin/iit_ism_1290e-summit" ||
     window.location.search.includes("admin=true") ||
     window.location.hash === "#admin";
 
