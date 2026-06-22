@@ -1,31 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>E-Summit 2026 | IIT ISM Dhanbad</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
   <header class="site-header">
     <div class="container header-inner">
+      <button class="nav-toggle" aria-label="Open menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="sidebar" aria-hidden="true" class="lucide lucide-sidebar"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M9 3v18"></path></svg>
+      </button>
+
       <nav class="site-nav nav-left">
+        <button class="nav-close" aria-label="Close menu">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" aria-hidden="true" class="lucide lucide-x"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
         <a href="#home">Home</a>
         <a href="#events">Events</a>
         <a href="#schedule">Schedule</a>
         <a href="#sponsors">Sponsors</a>
         <a href="#faq">FAQs</a>
         <a href="#register">Contact Us</a>
+        <div class="mobile-nav-footer">
+          <a class="button button-primary" href="#register">Buy Tickets</a>
+          <a class="button button-pill iic-badge" href="https://iic.iitdh.ac.in" target="_blank" rel="noopener">IIC</a>
+        </div>
       </nav>
 
-      <div class="brand brand-center" style="visibility: hidden; width: 0;"></div>
+      <div class="nav-overlay"></div>
 
-      <div class="header-actions">
+      <a class="brand brand-center mobile-logo" href="#home">
+        <img src="public/logo.png" alt="E-Summit logo">
+        <span>E-Summit</span>
+      </a>
+
+      <div class="header-actions desktop-only">
         <a class="button button-primary" href="#register">Buy Tickets</a>
-        <a class="button button-pill iic-badge" href="https://iic.iitdh.ac.in" target="_blank" rel="noopener">IIC</a>
+        <a class="button button-pill iic-badge" href="https://iic.iitdh.ac.in" target="_blank" rel="noopener">IIT DH</a>
       </div>
     </div>
   </header>
@@ -35,10 +52,10 @@
       <div class="hero-sky"></div>
       <div class="container hero-content">
         <div class="hero-brand">
-          <img src="https://iic.iitdh.ac.in/esummit/assets/No-BG-E-Summit'25.png" alt="E-Summit 2026 logo" />
+          <img src="public/logo.png" alt="E-Summit 2026 logo">
           <div class="hero-brand-text">
             <span class="hero-brand-title">E-SUMMIT<sup>25</sup></span>
-            <span class="hero-brand-subtitle">IIT DHARWAD</span>
+            <span class="hero-brand-subtitle">IIT DHANBAD</span>
           </div>
         </div>
         <a class="button button-primary hero-button" href="#about">About the Event</a>
@@ -64,12 +81,12 @@
 
     <section id="when" class="section when-section">
       <div class="container when-card">
-        <div class="scroll-reveal reveal-left">
+        <div class="scroll-reveal reveal-left visible">
           <h2>When</h2>
           <p>Thursday to Saturday</p>
           <strong>6th - 8th August 2026</strong>
         </div>
-        <div class="scroll-reveal reveal-right">
+        <div class="scroll-reveal reveal-right visible">
           <h3>Location</h3>
           <p>IIT ISM Dhanbad Campus</p>
           <p>Hostel shuttle service available at 9:30/9:45 AM.</p>
@@ -83,42 +100,42 @@
         <h2>Seven powerful experiences designed for entrepreneurs</h2>
       </div>
       <div class="container events-grid">
-        <article class="event-card scroll-reveal">
+        <article class="event-card scroll-reveal reveal-left visible">
           <h3>FIND THE BUG 3.0</h3>
           <p>Identify flaws in existing company strategies and pitch transformative solutions in a fast-paced problem-solving competition.</p>
           <a href="#" class="event-link">Learn More <span>→</span></a>
         </article>
-        <article class="event-card scroll-reveal">
+        <article class="event-card scroll-reveal reveal-right visible">
           <h3>BOARDROOM BATTLES</h3>
           <p>A high-stakes corporate showdown where strategy, persuasion, and innovation collide in a dynamic boardroom battle for dominance.</p>
           <a href="#" class="event-link">Learn More <span>→</span></a>
         </article>
-        <article class="event-card scroll-reveal">
+        <article class="event-card scroll-reveal reveal-left visible">
           <h3>INOVEX - FLAGSHIP PITCH DECK EVENT</h3>
           <p>Pitch your groundbreaking startup ideas and business models in front of top investors and incubators.</p>
           <a href="#" class="event-link">Learn More <span>→</span></a>
         </article>
-        <article class="event-card scroll-reveal">
+        <article class="event-card scroll-reveal reveal-right visible">
           <h3>BID-A-BIZ</h3>
           <p>Simulate building a business from scratch by bidding for land, labor, and resources in a high-pressure auction.</p>
           <a href="#" class="event-link">Learn More <span>→</span></a>
         </article>
-        <article class="event-card scroll-reveal">
+        <article class="event-card scroll-reveal reveal-left visible">
           <h3>TECHNOSTROPHE</h3>
           <p>A two-round quiz event that blends tech, trivia, and tension to test your brainpower and reaction time.</p>
           <a href="#" class="event-link">Learn More <span>→</span></a>
         </article>
-        <article class="event-card scroll-reveal">
+        <article class="event-card scroll-reveal reveal-right visible">
           <h3>E-MUN</h3>
           <p>A unique Model UN simulation where you represent companies instead of countries and tackle real business crises.</p>
           <a href="#" class="event-link">Learn More <span>→</span></a>
         </article>
-        <article class="event-card scroll-reveal">
+        <article class="event-card scroll-reveal reveal-left visible">
           <h3>FINANCE-FOR-ALL TALK SHOW 3.0</h3>
           <p>A flagship talk show that simplifies finance through stories, trends, and expert insights from industry leaders.</p>
           <a href="#" class="event-link">Learn More <span>→</span></a>
         </article>
-        <article class="event-card scroll-reveal">
+        <article class="event-card scroll-reveal reveal-right visible">
           <h3>TRUMBLE</h3>
           <p>A real-time, paper trading competition where you test market instincts without financial risk.</p>
           <a href="#" class="event-link">Learn More <span>→</span></a>
@@ -140,7 +157,7 @@
         <div class="schedule-content">
         <div class="schedule-day active" data-day="1">
           <div class="schedule-timeline">
-            <div class="timeline-event scroll-reveal">
+            <div class="timeline-event scroll-reveal reveal-left visible">
               <div class="timeline-dot"></div>
               <div class="timeline-card">
                 <span class="event-time">09:00 AM</span>
@@ -149,7 +166,7 @@
                 <p>Formal opening ceremony of E-Summit '26 with keynote speeches from industry leaders.</p>
               </div>
             </div>
-            <div class="timeline-event scroll-reveal">
+            <div class="timeline-event scroll-reveal reveal-right visible">
               <div class="timeline-dot"></div>
               <div class="timeline-card">
                 <span class="event-time">11:00 AM</span>
@@ -158,7 +175,7 @@
                 <p>First round of Find The Bug competition. Identify flaws and pitch solutions.</p>
               </div>
             </div>
-            <div class="timeline-event scroll-reveal">
+            <div class="timeline-event scroll-reveal reveal-left visible">
               <div class="timeline-dot"></div>
               <div class="timeline-card">
                 <span class="event-time">02:30 PM</span>
@@ -171,7 +188,7 @@
         </div>
         <div class="schedule-day" data-day="2">
           <div class="schedule-timeline">
-            <div class="timeline-event scroll-reveal">
+            <div class="timeline-event scroll-reveal reveal-right">
               <div class="timeline-dot"></div>
               <div class="timeline-card">
                 <span class="event-time">10:00 AM</span>
@@ -180,7 +197,7 @@
                 <p>Startups pitch groundbreaking ideas in front of top investors and incubators.</p>
               </div>
             </div>
-            <div class="timeline-event scroll-reveal">
+            <div class="timeline-event scroll-reveal reveal-left">
               <div class="timeline-dot"></div>
               <div class="timeline-card">
                 <span class="event-time">01:00 PM</span>
@@ -189,7 +206,7 @@
                 <p>Two-round tech quiz blending trivia and reaction time challenges.</p>
               </div>
             </div>
-            <div class="timeline-event scroll-reveal">
+            <div class="timeline-event scroll-reveal reveal-right">
               <div class="timeline-dot"></div>
               <div class="timeline-card">
                 <span class="event-time">04:00 PM</span>
@@ -202,7 +219,7 @@
         </div>
         <div class="schedule-day" data-day="3">
           <div class="schedule-timeline">
-            <div class="timeline-event scroll-reveal">
+            <div class="timeline-event scroll-reveal reveal-left">
               <div class="timeline-dot"></div>
               <div class="timeline-card">
                 <span class="event-time">10:00 AM</span>
@@ -211,20 +228,20 @@
                 <p>Final auction round where teams bid for resources to build their business.</p>
               </div>
             </div>
-            <div class="timeline-event scroll-reveal">
+            <div class="timeline-event scroll-reveal reveal-right">
               <div class="timeline-dot"></div>
               <div class="timeline-card">
                 <span class="event-time">02:00 PM</span>
-                <h4>Prize Announcements & Closing Ceremony</h4>
+                <h4>Prize Announcements &amp; Closing Ceremony</h4>
                 <p class="event-venue">Venue: Main Auditorium</p>
                 <p>Recognition of winners, closing remarks, and celebration of innovation.</p>
               </div>
             </div>
-            <div class="timeline-event scroll-reveal">
+            <div class="timeline-event scroll-reveal reveal-left">
               <div class="timeline-dot"></div>
               <div class="timeline-card">
                 <span class="event-time">05:00 PM</span>
-                <h4>Networking & Afterparty</h4>
+                <h4>Networking &amp; Afterparty</h4>
                 <p class="event-venue">Venue: Central Lawn</p>
                 <p>Informal networking session with refreshments and alumni meet.</p>
               </div>
@@ -242,18 +259,56 @@
         <h2>Supporting innovation and entrepreneurship</h2>
       </div>
       <div class="container sponsor-grid">
-        <div class="sponsor-card scroll-reveal">
+        <div class="sponsor-card scroll-reveal reveal-right visible">
           <span>Bronze Sponsor</span>
-          <img src="https://iic.iitdh.ac.in/esummit/assets/ConvergentTechnologies.png" alt="Convergent Technologies" />
+          <img src="https://iic.iitdh.ac.in/esummit/assets/ConvergentTechnologies.png" alt="Convergent Technologies">
         </div>
-        <div class="sponsor-card scroll-reveal">
+        <div class="sponsor-card scroll-reveal reveal-left visible">
           <span>Bronze Sponsor</span>
-          <img src="https://iic.iitdh.ac.in/esummit/assets/Fluke_Corporation_logo.svg.png" alt="Fluke Corporation" />
+          <img src="https://iic.iitdh.ac.in/esummit/assets/Fluke_Corporation_logo.svg.png" alt="Fluke Corporation">
         </div>
-        <div class="sponsor-card scroll-reveal">
+        <div class="sponsor-card scroll-reveal reveal-right visible">
           <span>Platform Partner</span>
-          <img src="https://imgs.search.brave.com/7gty7ZwlJ08BetgdFpcmnRH718uyI9zT7PIg1BVSbwQ/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4uYnJhbmRmZXRjaC5p/by9pZEdESVgxQ1pk/L3RoZW1lL2Rhcmsv/bG9nby5zdmc_Yz0x/YnhpZDY0TXVwN2Fj/emV3U0FZTVgmdD0x/NjgxNzY3NjYyOTI1" alt="Platform Partner" />
+          <img src="https://imgs.search.brave.com/7gty7ZwlJ08BetgdFpcmnRH718uyI9zT7PIg1BVSbwQ/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4uYnJhbmRmZXRjaC5p/by9pZEdESVgxQ1pk/L3RoZW1lL2Rhcmsv/bG9nby5zdmc_Yz0x/YnhpZDY0TXVwN2Fj/emV3U0FZTVgmdD0x/NjgxNzY3NjYyOTI1" alt="Platform Partner">
         </div>
+      </div>
+    </section>
+
+    <section id="team" class="section team-section">
+      <div class="container section-header">
+        <span class="section-label">Our Team</span>
+        <h2>Meet the minds behind E-Summit 2026</h2>
+      </div>
+      <div class="team-container">
+        <div class="team-track" id="team-track">
+          
+          
+          
+        <div class="member-card">
+            <div class="member-image-wrapper">
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&amp;auto=format&amp;fit=crop&amp;q=80" alt="Aarav Mehta" class="member-img">
+            </div>
+            <div class="member-info">
+              <h3 class="member-name">Aarav Mehta</h3>
+              <span class="member-role">Overall Coordinator</span>
+            </div>
+          </div><div class="member-card">
+            <div class="member-image-wrapper">
+              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&amp;auto=format&amp;fit=crop&amp;q=80" alt="Ananya Sharma" class="member-img">
+            </div>
+            <div class="member-info">
+              <h3 class="member-name">Ananya Sharma</h3>
+              <span class="member-role">Head of Operations</span>
+            </div>
+          </div><div class="member-card">
+            <div class="member-image-wrapper">
+              <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&amp;auto=format&amp;fit=crop&amp;q=80" alt="Kabir Singh" class="member-img">
+            </div>
+            <div class="member-info">
+              <h3 class="member-name">Kabir Singh</h3>
+              <span class="member-role">Marketing Lead</span>
+            </div>
+          </div></div>
       </div>
     </section>
 
@@ -269,7 +324,7 @@
         </div>
         <div class="faq-item">
           <button class="faq-question">Who can be a part of the summit?</button>
-          <div class="faq-answer"><p>Students and working professionals from any college are welcome to participate.</p></div>
+          <div class="faq-answer"><p>Students and working professionals from any college are welcome to participate .</p></div>
         </div>
         <div class="faq-item">
           <button class="faq-question">What are the advantages of attending?</button>
@@ -279,7 +334,7 @@
     </section>
 
     <section id="register" class="section register-section">
-      <div class="container register-card scroll-reveal reveal-right">
+      <div class="container register-card scroll-reveal reveal-right visible">
         <div>
           <h2>Ready to join E-Summit 2026?</h2>
           <p>Register now to secure your spot at IIT ISM Dhanbad's premier entrepreneurship event.</p>
@@ -294,10 +349,48 @@
       <p>Copyright © 2026 Institute Innovation Council of IIT ISM Dhanbad. All rights reserved.</p>
       <div class="footer-links">
         <a href="mailto:outreach.iic@iitdh.ac.in">outreach.iic@iitdh.ac.in</a>
-        <a href="https://www.iitdh.ac.in/">IIT Dharwad</a>
+        <a href="https://www.iitdh.ac.in/">IIT Dhanbad</a>
       </div>
     </div>
   </footer>
+
+  <!-- Admin Passcode Modal -->
+  <div id="admin-passcode-modal" class="admin-modal-overlay">
+    <div class="admin-modal">
+      <h3>Admin Authentication</h3>
+      <p>Please enter the passcode to access Admin Mode</p>
+      <form id="admin-login-form">
+        <input type="password" id="admin-passcode" placeholder="Enter Passcode" required="">
+        <div class="admin-modal-actions">
+          <button type="button" id="admin-modal-cancel" class="button button-secondary">Cancel</button>
+          <button type="submit" class="button button-primary">Authenticate</button>
+        </div>
+      </form>
+      <p id="admin-login-error" class="admin-error-text"></p>
+    </div>
+  </div>
+
+  <!-- Floating Admin Control Bar -->
+  <div id="admin-control-bar" class="admin-bar">
+    <div class="admin-bar-inner">
+      <span class="admin-status"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="shield" aria-hidden="true" class="lucide lucide-shield"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg> Admin Mode Active</span>
+      <div class="admin-actions">
+        <button id="admin-add-event" class="button button-secondary button-pill"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="plus-circle" aria-hidden="true" class="lucide lucide-plus-circle"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path><path d="M12 8v8"></path></svg> Add Event</button>
+        <button id="admin-add-member" class="button button-secondary button-pill"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="user-plus" aria-hidden="true" class="lucide lucide-user-plus"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" x2="19" y1="8" y2="14"></line><line x1="22" x2="16" y1="11" y2="11"></line></svg> Add Member</button>
+        <button id="admin-save" class="button button-primary"><i data-lucide="save"></i> Save Changes</button>
+        <button id="admin-exit" class="button button-secondary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="log-out" aria-hidden="true" class="lucide lucide-log-out"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg> Exit</button>
+      </div>
+    </div>
+  </div>
+
   <script src="script.js"></script>
-</body>
-</html>
+<!-- Code injected by live-server -->
+
+
+<!-- Code injected by live-server -->
+
+<!-- Code injected by live-server -->
+
+<!-- Code injected by live-server -->
+
+</body></html>

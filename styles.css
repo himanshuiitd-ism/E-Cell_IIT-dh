@@ -225,6 +225,112 @@ body::before {
   transform: translateY(-1px);
 }
 
+.desktop-only {
+  display: flex;
+}
+
+.nav-close {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  color: var(--text);
+  cursor: pointer;
+  position: absolute;
+  top: 18px;
+  right: 18px;
+}
+
+.nav-close span {
+  position: relative;
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 999px;
+}
+
+.nav-close span:first-child {
+  transform: rotate(45deg);
+}
+
+.nav-close span:last-child {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: rotate(-45deg);
+}
+
+.nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+}
+
+.nav-toggle span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 999px;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.nav-toggle span + span {
+  margin-top: 6px;
+}
+
+.mobile-logo {
+  display: none;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.mobile-logo img {
+  width: 30px;
+  height: auto;
+}
+
+.mobile-nav-footer {
+  display: none;
+}
+
+.nav-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 25;
+}
+
+.nav-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.nav-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -979,31 +1085,72 @@ body::before {
 @media (max-width: 820px) {
   .site-nav {
     position: fixed;
-    inset: 72px 1.5rem auto auto;
-    right: 0;
-    z-index: 25;
+    inset: 0 auto 0 0;
+    width: 280px;
+    max-width: 80vw;
+    height: 100vh;
+    z-index: 30;
     flex-direction: column;
     gap: 1rem;
-    padding: 1.25rem;
-    background: rgba(4, 7, 20, 0.96);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
-    transform: translateX(110%);
-    opacity: 0;
-    pointer-events: none;
-    transition:
-      transform 0.25s ease,
-      opacity 0.25s ease;
+    padding: 4rem 1.5rem 1.5rem;
+    background: rgba(4, 7, 20, 0.98);
+    border-right: 1px solid rgba(255, 118, 0, 0.12);
+    transform: translateX(-110%);
+    opacity: 1;
+    pointer-events: auto;
+    transition: transform 0.25s ease;
+  }
+
+  .site-nav {
+    overflow-y: auto;
   }
 
   .site-nav.open {
     transform: translateX(0);
-    opacity: 1;
-    pointer-events: auto;
+  }
+
+  .site-nav a {
+    width: 100%;
+    padding: 0.9rem 0;
+    font-size: 1rem;
+    color: var(--text);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .site-nav a:hover,
+  .site-nav a:focus-visible {
+    transform: none;
+    color: var(--accent);
   }
 
   .nav-toggle {
     display: flex;
+  }
+
+  .mobile-nav-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: auto;
+  }
+
+  .nav-close {
+    display: flex;
+  }
+
+  .header-actions {
+    display: none;
+  }
+
+  .desktop-only {
+    display: none;
+  }
+
+  .mobile-logo {
+    display: flex;
+    position: static;
+    transform: none;
+    margin: 0 auto;
   }
 
   .button-primary,
@@ -1020,16 +1167,164 @@ body::before {
     align-items: flex-start;
   }
 }
-
 @media (max-width: 540px) {
   .site-header {
     padding: 0 0.75rem;
   }
+
   .header-inner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     gap: 0.75rem;
   }
-  .hero h1 {
+
+  .container {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 5px;
+  }
+
+  .site-header {
+    width: 100%;
+    padding: 0;
+  }
+
+  .header-inner {
+    max-width: 100%;
+    width: 100%;
+    padding: 0;
+  }
+
+  .site-nav {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 260px;
+    max-width: 80vw;
+    height: 100vh;
+    background: rgba(4, 7, 20, 0.98);
+    border-right: 1px solid rgba(255, 118, 0, 0.12);
+    padding: 4rem 1.5rem 1.5rem;
+    transform: translateX(-110%);
+    z-index: 30;
+    flex-direction: column;
+    gap: 1rem;
+    overflow-y: auto;
+  }
+
+  .site-nav a {
+    width: 100%;
+    padding: 0.9rem 0;
+    font-size: 1rem;
+    color: var(--text);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .nav-close {
+    display: flex;
+  }
+
+  .header-actions {
+    display: none;
+  }
+
+  .hero {
+    width: 100%;
+    min-height: auto;
+    padding: 3rem 5px 2rem;
+    justify-content: center;
+  }
+
+  .hero-content {
+    width: 100%;
+    max-width: 100%;
+    padding: 2rem 5px;
+    gap: 1.5rem;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero-brand img {
+    width: min(240px, 100%);
+  }
+
+  .hero-brand-title {
     font-size: clamp(2.5rem, 10vw, 4rem);
+  }
+
+  .hero-brand-subtitle {
+    font-size: 1rem;
+  }
+
+  .hero-button {
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  .section {
+    padding: 3rem 0;
+  }
+
+  .section-header {
+    text-align: center;
+    padding: 0 1rem;
+  }
+
+  .section-label {
+    margin: 0 auto 0.85rem;
+  }
+
+  .section h2 {
+    font-size: clamp(2rem, 7vw, 2.6rem);
+  }
+
+  .events-grid,
+  .faq-grid,
+  .sponsor-grid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .faq-grid {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .faq-item {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .faq-question,
+  .faq-answer {
+    padding: 1.5rem;
+  }
+
+  .faq-question {
+    font-size: 1.1rem;
+  }
+
+  .register-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.75rem;
+  }
+
+  .register-card a.button {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .footer-inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-links {
+    justify-content: center;
   }
 
   .events-grid {
@@ -1050,3 +1345,456 @@ body::before {
     gap: 1rem;
   }
 }
+
+/* --- TEAM MEMBERS SECTION & INFINITE CAROUSEL --- */
+.team-section {
+  background: rgba(8, 6, 5, 0.4);
+  border-top: 1px solid rgba(255, 118, 0, 0.08);
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.team-container {
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+  padding: 2rem 0;
+}
+
+.team-track {
+  display: flex;
+  gap: 0;
+  width: max-content;
+  animation: scroll-carousel 25s linear infinite;
+}
+
+.team-track:hover {
+  animation-play-state: paused;
+}
+
+.team-group {
+  display: flex;
+  gap: 2rem;
+  padding-right: 2rem;
+  flex-shrink: 0;
+}
+
+@keyframes scroll-carousel {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+body.admin-mode .team-track {
+  animation: none !important;
+  transform: none !important;
+  flex-wrap: wrap;
+  width: 100%;
+  justify-content: center;
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.member-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 360px;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  position: relative;
+}
+
+.team-track .member-card {
+  width: 360px;
+  max-width: none;
+  flex-shrink: 0;
+}
+
+.member-image-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 100%; /* 1:1 Aspect Ratio */
+  overflow: hidden;
+  background: #111;
+  border-bottom: 1px solid var(--border);
+}
+
+.member-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.member-info {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.member-name {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.member-role {
+  font-size: 0.9rem;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* --- PREMIUM CARD HOVER EFFECTS --- */
+
+/* Event Cards Hover */
+.event-card {
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.event-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--accent);
+  background: linear-gradient(185deg, rgba(255, 118, 0, 0.08) 0%, rgba(18, 18, 18, 0.95) 70%);
+  box-shadow: 0 20px 40px rgba(255, 118, 0, 0.12), var(--shadow);
+}
+
+/* Sponsor Cards Hover */
+.sponsor-card {
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.sponsor-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  border-color: rgba(255, 118, 0, 0.3);
+  background: rgba(24, 24, 24, 0.98);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Member Cards Hover */
+.member-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--accent);
+  box-shadow: 0 20px 40px rgba(255, 118, 0, 0.1), var(--shadow);
+}
+.member-card:hover .member-img {
+  transform: scale(1.08);
+}
+
+/* FAQ Item Hover */
+.faq-item {
+  transition: all 0.3s ease;
+}
+.faq-item:hover {
+  border-color: rgba(255, 118, 0, 0.25);
+  box-shadow: 0 10px 25px rgba(255, 118, 0, 0.05);
+}
+
+/* Timeline Card Hover update */
+.timeline-card {
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.timeline-card:hover {
+  transform: translateX(5px);
+  background: linear-gradient(90deg, rgba(255, 118, 0, 0.08) 0%, rgba(18, 18, 18, 0.95) 100%);
+  border-color: var(--accent);
+  box-shadow: 0 10px 30px rgba(255, 118, 0, 0.08);
+}
+
+
+/* --- ADMIN MODE STYLES --- */
+
+/* Passcode Modal Overlay */
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.admin-modal-overlay.open {
+  display: flex;
+  opacity: 1;
+}
+
+.admin-modal {
+  background: var(--surface-strong);
+  border: 1px solid var(--accent);
+  border-radius: 20px;
+  padding: 2.5rem;
+  width: min(420px, calc(100% - 2rem));
+  box-shadow: 0 20px 60px rgba(255, 118, 0, 0.25);
+  text-align: center;
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+}
+
+.admin-modal-overlay.open .admin-modal {
+  transform: translateY(0);
+}
+
+.admin-modal h3 {
+  margin-top: 0;
+  font-size: 1.5rem;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
+.admin-modal p {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-modal input[type="password"] {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--text);
+  font-size: 1rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  outline: none;
+  transition: border-color 0.25s ease;
+}
+
+.admin-modal input[type="password"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(255, 118, 0, 0.2);
+}
+
+.admin-modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.admin-modal-actions button {
+  flex: 1;
+}
+
+.admin-error-text {
+  color: #ff3333;
+  margin-top: 1rem;
+  font-size: 0.88rem;
+  min-height: 1.2rem;
+}
+
+/* Floating Control Bar */
+.admin-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(150px);
+  width: min(800px, calc(100% - 2rem));
+  background: rgba(18, 18, 18, 0.95);
+  border: 1px solid var(--accent);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 118, 0, 0.15);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+  padding: 1rem 1.5rem;
+}
+
+.admin-bar.open {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.admin-bar-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.admin-status {
+  font-weight: 700;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.admin-actions .button {
+  padding: 0.7rem 1.2rem;
+  font-size: 0.88rem;
+}
+
+/* Inline Editing Highlights */
+body.admin-mode [contenteditable="true"] {
+  outline: 1px dashed rgba(255, 118, 0, 0.4);
+  background: rgba(255, 118, 0, 0.04);
+  transition: all 0.2s ease;
+  cursor: text;
+}
+
+body.admin-mode [contenteditable="true"]:hover {
+  outline: 1px dashed var(--accent);
+  background: rgba(255, 118, 0, 0.08);
+}
+
+body.admin-mode [contenteditable="true"]:focus {
+  outline: 2px solid var(--accent);
+  background: rgba(255, 118, 0, 0.12);
+}
+
+/* Hover Delete Overlay on Cards in Admin Mode */
+body.admin-mode .event-card,
+body.admin-mode .member-card {
+  position: relative;
+}
+
+.admin-delete-btn {
+  display: none;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(220, 53, 69, 0.9);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: background 0.2s, transform 0.2s;
+}
+
+.admin-delete-btn:hover {
+  background: rgba(220, 53, 69, 1);
+  transform: scale(1.1);
+}
+
+body.admin-mode .event-card:hover .admin-delete-btn,
+body.admin-mode .member-card:hover .admin-delete-btn {
+  display: flex;
+}
+
+/* Delete button overlays for more elements in admin mode */
+body.admin-mode .event-card,
+body.admin-mode .member-card,
+body.admin-mode .timeline-event,
+body.admin-mode .faq-item,
+body.admin-mode .sponsor-card {
+  position: relative;
+}
+
+body.admin-mode .event-card:hover .admin-delete-btn,
+body.admin-mode .member-card:hover .admin-delete-btn,
+body.admin-mode .timeline-event:hover .admin-delete-btn,
+body.admin-mode .faq-item:hover .admin-delete-btn,
+body.admin-mode .sponsor-card:hover .admin-delete-btn {
+  display: flex;
+}
+
+/* Specific positioning for delete button on timeline events and FAQ items */
+body.admin-mode .timeline-event .admin-delete-btn {
+  top: 10px;
+  right: 10px;
+}
+body.admin-mode .faq-item .admin-delete-btn {
+  top: 24px;
+  right: 20px;
+}
+body.admin-mode .sponsor-card .admin-delete-btn {
+  top: 15px;
+  right: 15px;
+}
+
+/* Image upload overlay for member cards */
+.admin-image-upload-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  align-items: center;
+  justify-content: center;
+  z-index: 99;
+  cursor: pointer;
+  backdrop-filter: blur(2px);
+  transition: all 0.2s ease;
+}
+
+body.admin-mode .member-image-wrapper:hover .admin-image-upload-overlay {
+  display: flex;
+}
+
+.admin-image-upload-btn {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  box-shadow: 0 4px 15px rgba(255, 118, 0, 0.4);
+  cursor: pointer;
+  pointer-events: none; /* Let the click pass to the overlay wrapper */
+}
+
+/* In-section add buttons styling */
+.admin-insection-add-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.25rem 2rem;
+  background: rgba(255, 118, 0, 0.04);
+  border: 2px dashed rgba(255, 118, 0, 0.4);
+  border-radius: 16px;
+  color: var(--accent);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin: 1.5rem 0;
+}
+
+.admin-insection-add-btn:hover {
+  background: rgba(255, 118, 0, 0.08);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 118, 0, 0.1);
+}
+
+body.admin-mode .admin-insection-add-btn {
+  display: inline-flex;
+}
+
