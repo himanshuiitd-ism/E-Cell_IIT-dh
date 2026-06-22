@@ -221,7 +221,61 @@ animateCursor();
 if (typeof lucide !== 'undefined') {
   lucide.createIcons();
 }
-setupTeamCarousel();
+const API_BASE_URL = window.location.origin.includes("localhost:3000") ? "" : "http://localhost:3000";
+
+async function loadMembers() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/members`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    if (data.success && Array.isArray(data.members)) {
+      const track = document.getElementById("team-track");
+      if (track) {
+        track.innerHTML = ""; // Clear existing elements
+        data.members.forEach(member => {
+          const card = document.createElement("div");
+          card.className = "member-card";
+          card.innerHTML = `
+            <div class="member-image-wrapper">
+              <img src="${member.image_url}" alt="${member.name}" class="member-img">
+            </div>
+            <div class="member-info">
+              <h3 class="member-name">${member.name}</h3>
+              <span class="member-role">${member.role}</span>
+            </div>
+          `;
+          track.appendChild(card);
+        });
+      }
+    }
+  } catch (err) {
+    console.error("Error loading team members:", err);
+  }
+}
+
+async function initTeam() {
+  await loadMembers();
+  
+  setupTeamCarousel();
+
+  // Check if already authenticated or visiting the admin route/query/hash
+  const isAuthSession = sessionStorage.getItem("admin_authenticated") === "true";
+  const isAdminRoute = 
+    window.location.pathname === "/admin/iit" ||
+    window.location.search.includes("admin=true") ||
+    window.location.hash === "#admin";
+
+  if (isAuthSession || isAdminRoute) {
+    if (isAuthSession) {
+      isAdminActive = true;
+      enterAdminMode();
+    } else {
+      openAdminModal();
+    }
+  }
+}
 
 /* --- ADMIN MODE FUNCTIONALITY --- */
 
@@ -237,25 +291,9 @@ const adminAddMember = document.getElementById("admin-add-member");
 const adminSaveBtn = document.getElementById("admin-save");
 const adminExitBtn = document.getElementById("admin-exit");
 
-const API_BASE_URL = window.location.origin.includes("localhost:3000") ? "" : "http://localhost:3000";
-
 let isAdminActive = false;
 
-// Check if already authenticated or visiting the admin route/query/hash
-const isAuthSession = sessionStorage.getItem("admin_authenticated") === "true";
-const isAdminRoute = 
-  window.location.pathname === "/admin/iit" ||
-  window.location.search.includes("admin=true") ||
-  window.location.hash === "#admin";
-
-if (isAuthSession || isAdminRoute) {
-  if (isAuthSession) {
-    isAdminActive = true;
-    enterAdminMode();
-  } else {
-    openAdminModal();
-  }
-}
+initTeam();
 
 function openAdminModal() {
   adminModal.classList.add("open");
