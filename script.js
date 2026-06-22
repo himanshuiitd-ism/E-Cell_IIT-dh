@@ -274,6 +274,7 @@ async function loadMembers() {
 }
 
 async function initTeam() {
+  sanitizeAllLinks();
   await loadMembers();
   
   setupTeamCarousel();
@@ -415,6 +416,16 @@ function handleAdminLinkDblClick(e) {
   const newHref = prompt(`Change link URL for "${link.textContent.trim()}":`, currentHref);
   
   if (newHref !== null) {
+    let formattedHref = newHref.trim();
+    if (formattedHref && 
+        !formattedHref.startsWith("#") && 
+        !formattedHref.startsWith("/") && 
+        !formattedHref.startsWith("mailto:") && 
+        !formattedHref.startsWith("tel:") && 
+        !/^(https?:\/\/|\/\/)/i.test(formattedHref)) {
+      formattedHref = "https://" + formattedHref;
+    }
+
     const linkText = link.textContent.trim().toLowerCase();
     
     // Globally update "Buy Tickets" and "IIC" duplicate links
@@ -424,7 +435,7 @@ function handleAdminLinkDblClick(e) {
         const elText = el.textContent.trim().toLowerCase();
         if (elText.includes("buy ticket") || elText === "iic") {
           if ((linkText.includes("buy ticket") && elText.includes("buy ticket")) || (linkText === "iic" && elText === "iic")) {
-            el.setAttribute("href", newHref);
+            el.setAttribute("href", formattedHref);
             count++;
           }
         }
@@ -432,8 +443,8 @@ function handleAdminLinkDblClick(e) {
       alert(`Updated all ${count} matching "${link.textContent.trim()}" links on the page.\nMake sure to save changes!`);
     } else {
       // For event links and others, only update the clicked link
-      link.setAttribute("href", newHref);
-      alert(`Link updated to: ${newHref}\nMake sure to save changes!`);
+      link.setAttribute("href", formattedHref);
+      alert(`Link updated to: ${formattedHref}\nMake sure to save changes!`);
     }
   }
 }
@@ -1075,6 +1086,20 @@ function formatAbsoluteUrl(url) {
     return trimmed;
   }
   return `https://${trimmed}`;
+}
+
+function sanitizeAllLinks() {
+  document.querySelectorAll("a").forEach(link => {
+    const href = link.getAttribute("href");
+    if (href && 
+        !href.startsWith("#") && 
+        !href.startsWith("/") && 
+        !href.startsWith("mailto:") && 
+        !href.startsWith("tel:") && 
+        !/^(https?:\/\/|\/\/)/i.test(href)) {
+      link.setAttribute("href", "https://" + href);
+    }
+  });
 }
 
 
