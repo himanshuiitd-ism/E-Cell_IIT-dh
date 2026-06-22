@@ -22,7 +22,74 @@ const initDb = async () => {
     if (fs.existsSync(sqlPath)) {
       const sqlContent = fs.readFileSync(sqlPath, "utf8");
       await pool.query(sqlContent);
-      console.log("Database initialized successfully.");
+      
+      // Perform database schema migrations if necessary (add page_path column dynamically)
+      await pool.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='site_content' AND column_name='page_path') THEN
+            ALTER TABLE site_content ADD COLUMN page_path TEXT;
+            UPDATE site_content SET page_path = '/' WHERE page_path IS NULL;
+            ALTER TABLE site_content ALTER COLUMN page_path SET NOT NULL;
+            ALTER TABLE site_content ADD CONSTRAINT site_content_page_path_key UNIQUE (page_path);
+          END IF;
+        END $$;
+      `);
+
+      // Migration for social media columns
+      await pool.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='instagram') THEN
+            ALTER TABLE members ADD COLUMN instagram TEXT DEFAULT '';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='facebook') THEN
+            ALTER TABLE members ADD COLUMN facebook TEXT DEFAULT '';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='twitter') THEN
+            ALTER TABLE members ADD COLUMN twitter TEXT DEFAULT '';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='linkedin') THEN
+            ALTER TABLE members ADD COLUMN linkedin TEXT DEFAULT '';
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='reddit') THEN
+            ALTER TABLE members ADD COLUMN reddit TEXT DEFAULT '';
+          END IF;
+        END $$;
+      `);
+
+      // Keep database HTML content synchronized with disk for the new features
+      const resHome = await pool.query("SELECT html FROM site_content WHERE page_path = '/'");
+      if (resHome.rows.length > 0) {
+        const dbHtml = resHome.rows[0].html;
+        if (!dbHtml.includes("/members.html") || dbHtml.includes('id="team"')) {
+          console.log("Database HTML is outdated or contains removed team section. Overwriting with fresh index.html...");
+          const freshHtml = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
+          await pool.query(
+            "INSERT INTO site_content (page_path, html) VALUES ('/', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
+            [freshHtml]
+          );
+        }
+      } else {
+        console.log("Database missing index.html. Seeding with local index.html...");
+        const freshHtml = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
+        await pool.query(
+          "INSERT INTO site_content (page_path, html) VALUES ('/', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
+          [freshHtml]
+        );
+      }
+
+      const resMembers = await pool.query("SELECT html FROM site_content WHERE page_path = '/members.html'");
+      if (resMembers.rows.length === 0) {
+        console.log("Database missing members.html. Seeding with local members.html...");
+        const freshHtml = fs.readFileSync(path.join(__dirname, "members.html"), "utf8");
+        await pool.query(
+          "INSERT INTO site_content (page_path, html) VALUES ('/members.html', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
+          [freshHtml]
+        );
+      }
+      
+      console.log("Database initialized, migrated, and synchronized successfully.");
     } else {
       console.warn("db/init.sql not found. Skipping database auto-initialization.");
     }
@@ -130,30 +197,51 @@ async function saveBase64ImagesToCloudinary(html) {
 // Helper function to extract members from HTML string
 function extractMembers(html) {
   const cards = [];
-  const cardRegex = /<div class="member-card"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/g;
-  let match;
+  const parts = html.split('<div class="member-card"');
   let order = 0;
   
-  while ((match = cardRegex.exec(html)) !== null) {
-    const block = match[1];
+  for (let i = 1; i < parts.length; i++) {
+    const part = parts[i];
+    const closingBracketIndex = part.indexOf('>');
+    if (closingBracketIndex === -1) continue;
     
-    // Extract Image URL
-    const imgMatch = block.match(/<img[^>]+src=["']([^"']+)["']/);
-    const image_url = imgMatch ? imgMatch[1] : '';
+    const attributes = part.substring(0, closingBracketIndex);
+    const content = part.substring(closingBracketIndex + 1);
     
     // Extract Name
-    const nameMatch = block.match(/class="member-name"[^>]*>([^<]*)</);
+    const nameMatch = content.match(/class="member-name"[^>]*>([^<]*)</);
     const name = nameMatch ? nameMatch[1].trim() : '';
     
     // Extract Role
-    const roleMatch = block.match(/class="member-role"[^>]*>([^<]*)</);
+    const roleMatch = content.match(/class="member-role"[^>]*>([^<]*)</);
     const role = roleMatch ? roleMatch[1].trim() : '';
+    
+    // Extract Image URL
+    const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["']/);
+    const image_url = imgMatch ? imgMatch[1] : '';
+    
+    // Extract social attributes
+    const extractAttr = (attrName) => {
+      const match = attributes.match(new RegExp(`data-${attrName}=["']([^"']*)["']`));
+      return match ? match[1] : '';
+    };
+    
+    const instagram = extractAttr('instagram');
+    const facebook = extractAttr('facebook');
+    const twitter = extractAttr('twitter');
+    const linkedin = extractAttr('linkedin');
+    const reddit = extractAttr('reddit');
     
     if (name) {
       cards.push({
         name,
         role,
         image_url,
+        instagram,
+        facebook,
+        twitter,
+        linkedin,
+        reddit,
         section: 'team',
         display_order: order++
       });
@@ -164,37 +252,48 @@ function extractMembers(html) {
 
 // Save updated members endpoint
 app.post("/api/save", async (req, res) => {
-  let { html } = req.body;
+  let { html, page_path } = req.body;
   if (!html) {
     return res
       .status(400)
       .json({ success: false, message: "HTML content is required" });
   }
 
+  if (!page_path) page_path = "/";
+  // Normalize admin routes and extension routes to match schema layout keys
+  if (page_path === "/admin/iit") page_path = "/";
+  if (page_path === "/members" || page_path === "/admin/members") page_path = "/members.html";
+
   try {
     // 1. Process base64 images inside HTML and upload them to Cloudinary
     html = await saveBase64ImagesToCloudinary(html);
 
-    // 2. Extract member cards from HTML
-    const members = extractMembers(html);
-    console.log(`Parsed ${members.length} members from HTML.`);
+    // 2. Check if the saved HTML contains the team section before modifying the members list
+    const hasTeamSection = html.includes('id="team-track"') || html.includes('id="team"');
 
-    // 3. Upsert members into Neon database (delete existing team members and insert new ones)
+    // 3. Upsert members into Neon database if team section is present
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      await client.query("DELETE FROM members WHERE section = 'team'");
       
-      for (const m of members) {
-        await client.query(
-          "INSERT INTO members (name, role, image_url, section, display_order) VALUES ($1, $2, $3, $4, $5)",
-          [m.name, m.role, m.image_url, m.section, m.display_order]
-        );
+      if (hasTeamSection) {
+        const members = extractMembers(html);
+        console.log(`Parsed ${members.length} members from HTML.`);
+        await client.query("DELETE FROM members WHERE section = 'team'");
+        
+        for (const m of members) {
+          await client.query(
+            "INSERT INTO members (name, role, image_url, section, display_order, instagram, facebook, twitter, linkedin, reddit) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+            [m.name, m.role, m.image_url, m.section, m.display_order, m.instagram || '', m.facebook || '', m.twitter || '', m.linkedin || '', m.reddit || '']
+          );
+        }
       }
 
-      // Also persist the site layout HTML to the database so that non-member changes are saved statefully
-      await client.query("DELETE FROM site_content");
-      await client.query("INSERT INTO site_content (html) VALUES ($1)", [html]);
+      // Also persist the site layout HTML to the database keyed by the normalized page path
+      await client.query(
+        "INSERT INTO site_content (page_path, html) VALUES ($1, $2) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
+        [page_path, html]
+      );
 
       await client.query("COMMIT");
     } catch (dbErr) {
@@ -205,12 +304,13 @@ app.post("/api/save", async (req, res) => {
     }
 
     // Write content back to local file as fallback and sync for local git
-    const filePath = path.join(__dirname, "index.html");
+    const localFilename = page_path === "/" ? "index.html" : "members.html";
+    const filePath = path.join(__dirname, localFilename);
     fs.writeFile(filePath, html, "utf8", (err) => {
       if (err) {
-        console.error("Error writing index.html locally:", err);
+        console.error(`Error writing ${localFilename} locally:`, err);
       } else {
-        console.log("index.html updated successfully locally.");
+        console.log(`${localFilename} updated successfully locally.`);
       }
     });
 
@@ -232,7 +332,7 @@ app.post("/api/save", async (req, res) => {
 // Fetch all members endpoint
 app.get("/api/members", async (req, res) => {
   try {
-    const result = await pool.query("SELECT name, role, image_url, section, display_order FROM members ORDER BY display_order ASC");
+    const result = await pool.query("SELECT name, role, image_url, section, display_order, instagram, facebook, twitter, linkedin, reddit FROM members ORDER BY display_order ASC");
     return res.json({ success: true, members: result.rows });
   } catch (err) {
     console.error("Error fetching members:", err);
@@ -243,7 +343,7 @@ app.get("/api/members", async (req, res) => {
 // Serve index.html from DB or fallback to file system
 const serveIndex = async (req, res) => {
   try {
-    const result = await pool.query("SELECT html FROM site_content ORDER BY id DESC LIMIT 1");
+    const result = await pool.query("SELECT html FROM site_content WHERE page_path = '/'");
     if (result.rows.length > 0) {
       return res.send(result.rows[0].html);
     }
@@ -253,8 +353,25 @@ const serveIndex = async (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 };
 
+// Serve members.html from DB or fallback to file system
+const serveMembersPage = async (req, res) => {
+  try {
+    const result = await pool.query("SELECT html FROM site_content WHERE page_path = '/members.html'");
+    if (result.rows.length > 0) {
+      return res.send(result.rows[0].html);
+    }
+  } catch (err) {
+    console.error("Failed to query Members HTML from database, serving local file:", err);
+  }
+  res.sendFile(path.join(__dirname, "members.html"));
+};
+
 app.get("/", serveIndex);
 app.get("/admin/iit", serveIndex);
+
+app.get("/members", serveMembersPage);
+app.get("/members.html", serveMembersPage);
+app.get("/admin/members", serveMembersPage);
 
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);

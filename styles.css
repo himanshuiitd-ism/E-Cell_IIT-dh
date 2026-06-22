@@ -275,6 +275,7 @@ body::before {
   border: 0;
   cursor: pointer;
   padding: 0;
+  order: -2;
 }
 
 .nav-toggle span {
@@ -337,10 +338,7 @@ body::before {
   gap: 0.85rem;
   text-decoration: none;
   color: var(--text);
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  order: -1;
 }
 
 .brand img {
@@ -1150,7 +1148,8 @@ body::before {
     display: flex;
     position: static;
     transform: none;
-    margin: 0 auto;
+    margin: 0;
+    order: -1;
   }
 
   .button-primary,
@@ -1797,4 +1796,124 @@ body.admin-mode .member-image-wrapper:hover .admin-image-upload-overlay {
 body.admin-mode .admin-insection-add-btn {
   display: inline-flex;
 }
+
+/* Static grid for dedicated team members page */
+.team-track.static-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 32px;
+  justify-items: center;
+  width: 100% !important;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Sponsor logo upload overlays in admin mode */
+body.admin-mode .sponsor-card:hover .admin-image-upload-overlay {
+  display: flex;
+  border-radius: 28px;
+}
+
+body.admin-mode .sponsor-card .admin-image-upload-overlay {
+  pointer-events: none;
+}
+
+body.admin-mode .sponsor-card .admin-image-upload-overlay .admin-image-upload-btn {
+  pointer-events: auto;
+}
+
+/* Social media links styling on member card */
+.member-socials {
+  display: flex;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-top: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.social-icon {
+  color: var(--muted);
+  font-size: 1.15rem;
+  transition: color 0.25s ease, transform 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.social-icon:hover {
+  color: var(--accent);
+  transform: translateY(-2px) scale(1.15);
+}
+
+.social-icon.instagram:hover {
+  color: #e1306c;
+}
+
+.social-icon.facebook:hover {
+  color: #1877f2;
+}
+
+.social-icon.twitter:hover {
+  color: #ffffff; /* X branding */
+}
+
+.social-icon.linkedin:hover {
+  color: #0a66c2;
+}
+
+.social-icon.reddit:hover {
+  color: #ff4500;
+}
+
+/* Admin Social Editor box styling */
+.admin-social-editor {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 118, 0, 0.04);
+  border: 1px dashed rgba(255, 118, 0, 0.25);
+  border-radius: 12px;
+  text-align: left;
+}
+
+.admin-social-platform {
+  width: 100%;
+  padding: 0.5rem;
+  background: #000;
+  color: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.admin-social-platform:focus {
+  border-color: var(--accent);
+}
+
+/* Highlight feedback form in footer */
+.google-form-link {
+  color: var(--accent) !important;
+  font-weight: 700;
+  padding: 0.35rem 0.75rem;
+  background: rgba(255, 118, 0, 0.12);
+  border: 1px solid rgba(255, 118, 0, 0.35);
+  border-radius: 6px;
+  box-shadow: 0 0 12px rgba(255, 118, 0, 0.2);
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  display: inline-block;
+}
+
+.google-form-link:hover {
+  background: rgba(255, 118, 0, 0.25);
+  border-color: var(--accent);
+  box-shadow: 0 0 18px rgba(255, 118, 0, 0.45);
+  transform: translateY(-1px);
+}
+
 

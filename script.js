@@ -237,6 +237,19 @@ async function loadMembers() {
         data.members.forEach(member => {
           const card = document.createElement("div");
           card.className = "member-card";
+          card.setAttribute("data-instagram", member.instagram || "");
+          card.setAttribute("data-facebook", member.facebook || "");
+          card.setAttribute("data-twitter", member.twitter || "");
+          card.setAttribute("data-linkedin", member.linkedin || "");
+          card.setAttribute("data-reddit", member.reddit || "");
+
+          let socialsHtml = "";
+          if (member.instagram) socialsHtml += `<a href="${formatAbsoluteUrl(member.instagram)}" class="social-icon instagram" target="_blank"><i class="fa-brands fa-instagram"></i></a>`;
+          if (member.facebook) socialsHtml += `<a href="${formatAbsoluteUrl(member.facebook)}" class="social-icon facebook" target="_blank"><i class="fa-brands fa-facebook"></i></a>`;
+          if (member.twitter) socialsHtml += `<a href="${formatAbsoluteUrl(member.twitter)}" class="social-icon twitter" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>`;
+          if (member.linkedin) socialsHtml += `<a href="${formatAbsoluteUrl(member.linkedin)}" class="social-icon linkedin" target="_blank"><i class="fa-brands fa-linkedin"></i></a>`;
+          if (member.reddit) socialsHtml += `<a href="${formatAbsoluteUrl(member.reddit)}" class="social-icon reddit" target="_blank"><i class="fa-brands fa-reddit"></i></a>`;
+
           card.innerHTML = `
             <div class="member-image-wrapper">
               <img src="${member.image_url}" alt="${member.name}" class="member-img">
@@ -244,6 +257,7 @@ async function loadMembers() {
             <div class="member-info">
               <h3 class="member-name">${member.name}</h3>
               <span class="member-role">${member.role}</span>
+              <div class="member-socials">${socialsHtml}</div>
             </div>
           `;
           track.appendChild(card);
@@ -448,15 +462,15 @@ function enterAdminMode() {
     "h1", "h2", "h3:not(.hero-brand-title)", "h4", "p", 
     ".event-link", ".member-name", ".member-role", 
     ".timeline-card h4", ".timeline-card p", ".event-time", ".event-venue",
-    ".sponsor-card span", ".button-primary", ".button-secondary", ".iic-badge"
+    ".sponsor-card span", ".button-primary", ".button-secondary", ".iic-badge", ".google-form-link"
   ];
   
   document.querySelectorAll(editableSelectors.join(", ")).forEach(el => {
     el.setAttribute("contenteditable", "true");
   });
 
-  // Set up double-click URLs for Buy Tickets, IIC, and Event links
-  const editableLinks = document.querySelectorAll(".button-primary, .button-secondary, .iic-badge, .event-link");
+  // Set up double-click URLs for Buy Tickets, IIC, Event, and Form links
+  const editableLinks = document.querySelectorAll(".button-primary, .button-secondary, .iic-badge, .event-link, .google-form-link");
   editableLinks.forEach(link => {
     link.removeEventListener("click", handleAdminLinkClick);
     link.removeEventListener("dblclick", handleAdminLinkDblClick);
@@ -473,6 +487,9 @@ function enterAdminMode() {
 
   // Inject in-section Add buttons dynamically
   injectInSectionAddButtons();
+
+  // Inject social media editors
+  setupSocialEditors();
 
   // Change cursor style in admin mode to default since it's hard to edit text with custom pointer
   document.body.style.cursor = "default";
@@ -519,6 +536,7 @@ function setupImageUploads() {
   // Remove existing upload overlays
   document.querySelectorAll(".admin-image-upload-overlay").forEach(overlay => overlay.remove());
 
+  // 1. Members image upload
   const memberCards = document.querySelectorAll(".member-card");
   memberCards.forEach(card => {
     const wrapper = card.querySelector(".member-image-wrapper");
@@ -557,6 +575,45 @@ function setupImageUploads() {
     });
 
     wrapper.appendChild(overlay);
+  });
+
+  // 2. Sponsors image upload (Change logo option)
+  const sponsorCards = document.querySelectorAll(".sponsor-card");
+  sponsorCards.forEach(card => {
+    const img = card.querySelector("img");
+    const categoryEl = card.querySelector("span");
+    if (!img) return;
+
+    const overlay = document.createElement("div");
+    overlay.className = "admin-image-upload-overlay";
+    overlay.innerHTML = `<button class="admin-image-upload-btn"><i data-lucide="image"></i> Change Logo</button>`;
+    
+    overlay.addEventListener("click", (e) => {
+      e.stopPropagation();
+      
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.accept = "image/*";
+      fileInput.style.display = "none";
+      
+      fileInput.addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          img.src = reader.result; // Set source to local base64 data url
+          img.alt = categoryEl ? categoryEl.textContent.trim() : "sponsor";
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document.body.appendChild(fileInput);
+      fileInput.click();
+      fileInput.remove();
+    });
+
+    card.appendChild(overlay);
   });
 
   if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -622,6 +679,7 @@ function injectInSectionAddButtons() {
       teamTrack.insertBefore(newCard, btn);
       addDeleteButtons();
       setupImageUploads();
+      setupSocialEditors();
       newCard.scrollIntoView({ behavior: "smooth" });
     });
     teamTrack.appendChild(btn);
@@ -728,6 +786,7 @@ adminSaveBtn.addEventListener("click", async () => {
   docClone.querySelectorAll(".admin-delete-btn").forEach(btn => btn.remove());
   docClone.querySelectorAll(".admin-insection-add-btn").forEach(btn => btn.remove());
   docClone.querySelectorAll(".admin-image-upload-overlay").forEach(overlay => overlay.remove());
+  docClone.querySelectorAll(".admin-social-editor").forEach(editor => editor.remove());
   docClone.querySelectorAll("[contenteditable]").forEach(el => {
     el.removeAttribute("contenteditable");
   });
@@ -816,12 +875,12 @@ adminSaveBtn.addEventListener("click", async () => {
     const response = await fetch(`${API_BASE_URL}/api/save`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ html: finalHtml }),
+      body: JSON.stringify({ html: finalHtml, page_path: window.location.pathname }),
     });
 
     const data = await response.json();
     if (data.success) {
-      alert("Changes saved successfully to index.html!");
+      alert("Changes saved successfully!");
     } else {
       alert("Error saving: " + data.message);
     }
@@ -839,7 +898,7 @@ adminSaveBtn.addEventListener("click", async () => {
 
 function setupTeamCarousel() {
   const track = document.getElementById("team-track");
-  if (!track || document.body.classList.contains("admin-mode")) return;
+  if (!track || document.body.classList.contains("admin-mode") || track.classList.contains("static-grid")) return;
   
   // Remove existing cloned or group elements
   const groups = track.querySelectorAll(".team-group");
@@ -898,6 +957,120 @@ function setupTeamCarousel() {
   // Append groups to track
   track.appendChild(group1);
   track.appendChild(group2);
+}
+
+function setupSocialEditors() {
+  // Remove existing editors if any
+  document.querySelectorAll(".admin-social-editor").forEach(el => el.remove());
+
+  document.querySelectorAll(".member-card").forEach(card => {
+    const editor = document.createElement("div");
+    editor.className = "admin-social-editor";
+    editor.innerHTML = `
+      <select class="admin-social-platform">
+        <option value="">+ Add/Edit Social Link</option>
+        <option value="instagram">Instagram</option>
+        <option value="facebook">Facebook</option>
+        <option value="twitter">X / Twitter</option>
+        <option value="linkedin">LinkedIn</option>
+        <option value="reddit">Reddit</option>
+      </select>
+      <div class="admin-social-input-row" style="display: none; gap: 0.5rem; margin-top: 0.5rem; align-items: center;">
+        <input type="text" class="admin-social-url" placeholder="Paste link here..." style="flex: 1; padding: 0.4rem; border-radius: 6px; border: 1px solid var(--border); background: #000; color: #fff; font-size: 0.8rem;">
+        <button class="admin-social-save-btn button button-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 6px; border: none; height: auto;">Save</button>
+      </div>
+    `;
+
+    const select = editor.querySelector(".admin-social-platform");
+    const inputRow = editor.querySelector(".admin-social-input-row");
+    const input = editor.querySelector(".admin-social-url");
+    const saveBtn = editor.querySelector(".admin-social-save-btn");
+
+    select.addEventListener("change", () => {
+      const platform = select.value;
+      if (platform) {
+        // Populate input with existing value
+        const existingUrl = card.getAttribute(`data-${platform}`) || "";
+        input.value = existingUrl;
+        inputRow.style.display = "flex";
+      } else {
+        inputRow.style.display = "none";
+      }
+    });
+
+    saveBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const platform = select.value;
+      const url = input.value.trim();
+
+      if (platform) {
+        const absoluteUrl = url ? formatAbsoluteUrl(url) : "";
+        card.setAttribute(`data-${platform}`, absoluteUrl);
+        
+        // Rebuild socials HTML in the card
+        updateCardSocialsHTML(card);
+        alert(`Updated ${platform} link successfully! Make sure to save changes.`);
+        
+        // Reset editor
+        select.value = "";
+        inputRow.style.display = "none";
+      }
+    });
+
+    // Make sure click on editor input/select doesn't trigger parent clicks
+    editor.addEventListener("click", (e) => e.stopPropagation());
+
+    const info = card.querySelector(".member-info");
+    if (info) {
+      info.appendChild(editor);
+    } else {
+      card.appendChild(editor);
+    }
+  });
+}
+
+function updateCardSocialsHTML(card) {
+  let socialsContainer = card.querySelector(".member-socials");
+  if (!socialsContainer) {
+    socialsContainer = document.createElement("div");
+    socialsContainer.className = "member-socials";
+    const info = card.querySelector(".member-info");
+    if (info) {
+      const editor = info.querySelector(".admin-social-editor");
+      if (editor) {
+        info.insertBefore(socialsContainer, editor);
+      } else {
+        info.appendChild(socialsContainer);
+      }
+    } else {
+      card.appendChild(socialsContainer);
+    }
+  }
+  
+  const instagram = card.getAttribute("data-instagram") || "";
+  const facebook = card.getAttribute("data-facebook") || "";
+  const twitter = card.getAttribute("data-twitter") || "";
+  const linkedin = card.getAttribute("data-linkedin") || "";
+  const reddit = card.getAttribute("data-reddit") || "";
+
+  let socialsHtml = "";
+  if (instagram) socialsHtml += `<a href="${formatAbsoluteUrl(instagram)}" class="social-icon instagram" target="_blank"><i class="fa-brands fa-instagram"></i></a>`;
+  if (facebook) socialsHtml += `<a href="${formatAbsoluteUrl(facebook)}" class="social-icon facebook" target="_blank"><i class="fa-brands fa-facebook"></i></a>`;
+  if (twitter) socialsHtml += `<a href="${formatAbsoluteUrl(twitter)}" class="social-icon twitter" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>`;
+  if (linkedin) socialsHtml += `<a href="${formatAbsoluteUrl(linkedin)}" class="social-icon linkedin" target="_blank"><i class="fa-brands fa-linkedin"></i></a>`;
+  if (reddit) socialsHtml += `<a href="${formatAbsoluteUrl(reddit)}" class="social-icon reddit" target="_blank"><i class="fa-brands fa-reddit"></i></a>`;
+
+  socialsContainer.innerHTML = socialsHtml;
+}
+
+function formatAbsoluteUrl(url) {
+  if (!url) return "";
+  const trimmed = url.trim();
+  if (/^(https?:\/\/|\/\/)/i.test(trimmed)) {
+    return trimmed;
+  }
+  return `https://${trimmed}`;
 }
 
 

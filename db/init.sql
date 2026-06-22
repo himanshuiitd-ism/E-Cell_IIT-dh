@@ -5,11 +5,17 @@ CREATE TABLE IF NOT EXISTS members (
   image_url TEXT,
   section TEXT,
   display_order INTEGER DEFAULT 0,
+  instagram TEXT,
+  facebook TEXT,
+  twitter TEXT,
+  linkedin TEXT,
+  reddit TEXT,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS site_content (
   id SERIAL PRIMARY KEY,
+  page_path TEXT NOT NULL UNIQUE,
   html TEXT NOT NULL,
   updated_at TIMESTAMP DEFAULT NOW()
 );
