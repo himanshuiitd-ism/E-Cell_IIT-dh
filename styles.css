@@ -1707,7 +1707,9 @@ body.admin-mode .team-track {
   color: var(--text);
   font-size: 0.95rem;
   outline: none;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .admin-form-group input[type="url"]:focus {

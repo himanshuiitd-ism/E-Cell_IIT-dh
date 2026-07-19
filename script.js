@@ -848,13 +848,13 @@ let buyTicketsClickTimer = null;
 
 function handleBuyTicketsTripleClick(e) {
   buyTicketsClickCount++;
-  
+
   if (buyTicketsClickCount === 1) {
     buyTicketsClickTimer = setTimeout(() => {
       buyTicketsClickCount = 0;
     }, 500); // Reset counter after 500ms
   }
-  
+
   if (buyTicketsClickCount === 3) {
     clearTimeout(buyTicketsClickTimer);
     buyTicketsClickCount = 0;
@@ -866,16 +866,26 @@ function handleBuyTicketsTripleClick(e) {
 // Open Footer Editor Modal
 adminEditFooterBtn?.addEventListener("click", () => {
   // Load current social media URLs into form
-  const instaLink = document.querySelector('.social-links a[title="Instagram"]');
-  const twitterLink = document.querySelector('.social-links a[title="Twitter"]');
-  const linkedinLink = document.querySelector('.social-links a[title="LinkedIn"]');
+  const instaLink = document.querySelector(
+    '.social-links a[title="Instagram"]',
+  );
+  const twitterLink = document.querySelector(
+    '.social-links a[title="Twitter"]',
+  );
+  const linkedinLink = document.querySelector(
+    '.social-links a[title="LinkedIn"]',
+  );
   const fbLink = document.querySelector('.social-links a[title="Facebook"]');
-  
-  document.getElementById("admin-instagram").value = instaLink?.getAttribute("href") || "";
-  document.getElementById("admin-twitter").value = twitterLink?.getAttribute("href") || "";
-  document.getElementById("admin-linkedin").value = linkedinLink?.getAttribute("href") || "";
-  document.getElementById("admin-facebook").value = fbLink?.getAttribute("href") || "";
-  
+
+  document.getElementById("admin-instagram").value =
+    instaLink?.getAttribute("href") || "";
+  document.getElementById("admin-twitter").value =
+    twitterLink?.getAttribute("href") || "";
+  document.getElementById("admin-linkedin").value =
+    linkedinLink?.getAttribute("href") || "";
+  document.getElementById("admin-facebook").value =
+    fbLink?.getAttribute("href") || "";
+
   adminFooterModal.classList.add("open");
 });
 
@@ -887,14 +897,14 @@ adminFooterCancel?.addEventListener("click", () => {
 // Save Footer Changes
 adminFooterForm?.addEventListener("submit", (e) => {
   e.preventDefault();
-  
+
   const instagramUrl = document.getElementById("admin-instagram").value;
   const twitterUrl = document.getElementById("admin-twitter").value;
   const linkedinUrl = document.getElementById("admin-linkedin").value;
   const facebookUrl = document.getElementById("admin-facebook").value;
-  
+
   // Update all footer links across the site
-  const socialLinks = document.querySelectorAll('.social-links a');
+  const socialLinks = document.querySelectorAll(".social-links a");
   socialLinks.forEach((link) => {
     const title = link.getAttribute("title");
     if (title === "Instagram") link.setAttribute("href", instagramUrl);
@@ -902,9 +912,11 @@ adminFooterForm?.addEventListener("submit", (e) => {
     if (title === "LinkedIn") link.setAttribute("href", linkedinUrl);
     if (title === "Facebook") link.setAttribute("href", facebookUrl);
   });
-  
+
   adminFooterModal.classList.remove("open");
-  alert("Social media links updated! Don't forget to Save Changes to persist them.");
+  alert(
+    "Social media links updated! Don't forget to Save Changes to persist them.",
+  );
 });
 
 // Navigate to Tickets Page
@@ -914,7 +926,9 @@ adminGoTicketsBtn?.addEventListener("click", () => {
 
 // Setup triple-click on all Buy Tickets buttons
 function setupBuyTicketsTripleClick() {
-  const buyTicketsButtons = document.querySelectorAll('a[href="/tickets.html"]');
+  const buyTicketsButtons = document.querySelectorAll(
+    'a[href="/tickets.html"]',
+  );
   buyTicketsButtons.forEach((btn) => {
     if (btn.textContent.toLowerCase().includes("buy ticket")) {
       btn.addEventListener("click", (e) => {
