@@ -218,13 +218,17 @@ generateStars();
 animateCursor();
 
 // Initialize Lucide icons
-if (typeof lucide !== 'undefined') {
+if (typeof lucide !== "undefined") {
   lucide.createIcons();
 }
-const API_BASE_URL = 
-  (window.location.hostname === "localhost" && window.location.port !== "3000" && window.location.port !== "") ||
-  (window.location.hostname === "127.0.0.1" && window.location.port !== "3000" && window.location.port !== "")
-    ? "http://localhost:3000" 
+const API_BASE_URL =
+  (window.location.hostname === "localhost" &&
+    window.location.port !== "3000" &&
+    window.location.port !== "") ||
+  (window.location.hostname === "127.0.0.1" &&
+    window.location.port !== "3000" &&
+    window.location.port !== "")
+    ? "http://localhost:3000"
     : "";
 
 async function loadMembers() {
@@ -238,7 +242,7 @@ async function loadMembers() {
       const track = document.getElementById("team-track");
       if (track) {
         track.innerHTML = ""; // Clear existing elements
-        data.members.forEach(member => {
+        data.members.forEach((member) => {
           const card = document.createElement("div");
           card.className = "member-card";
           card.setAttribute("data-instagram", member.instagram || "");
@@ -248,11 +252,16 @@ async function loadMembers() {
           card.setAttribute("data-reddit", member.reddit || "");
 
           let socialsHtml = "";
-          if (member.instagram) socialsHtml += `<a href="${formatAbsoluteUrl(member.instagram)}" class="social-icon instagram" target="_blank"><i class="fa-brands fa-instagram"></i></a>`;
-          if (member.facebook) socialsHtml += `<a href="${formatAbsoluteUrl(member.facebook)}" class="social-icon facebook" target="_blank"><i class="fa-brands fa-facebook"></i></a>`;
-          if (member.twitter) socialsHtml += `<a href="${formatAbsoluteUrl(member.twitter)}" class="social-icon twitter" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>`;
-          if (member.linkedin) socialsHtml += `<a href="${formatAbsoluteUrl(member.linkedin)}" class="social-icon linkedin" target="_blank"><i class="fa-brands fa-linkedin"></i></a>`;
-          if (member.reddit) socialsHtml += `<a href="${formatAbsoluteUrl(member.reddit)}" class="social-icon reddit" target="_blank"><i class="fa-brands fa-reddit"></i></a>`;
+          if (member.instagram)
+            socialsHtml += `<a href="${formatAbsoluteUrl(member.instagram)}" class="social-icon instagram" target="_blank"><i class="fa-brands fa-instagram"></i></a>`;
+          if (member.facebook)
+            socialsHtml += `<a href="${formatAbsoluteUrl(member.facebook)}" class="social-icon facebook" target="_blank"><i class="fa-brands fa-facebook"></i></a>`;
+          if (member.twitter)
+            socialsHtml += `<a href="${formatAbsoluteUrl(member.twitter)}" class="social-icon twitter" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>`;
+          if (member.linkedin)
+            socialsHtml += `<a href="${formatAbsoluteUrl(member.linkedin)}" class="social-icon linkedin" target="_blank"><i class="fa-brands fa-linkedin"></i></a>`;
+          if (member.reddit)
+            socialsHtml += `<a href="${formatAbsoluteUrl(member.reddit)}" class="social-icon reddit" target="_blank"><i class="fa-brands fa-reddit"></i></a>`;
 
           card.innerHTML = `
             <div class="member-image-wrapper">
@@ -276,12 +285,13 @@ async function loadMembers() {
 async function initTeam() {
   sanitizeAllLinks();
   await loadMembers();
-  
+
   setupTeamCarousel();
 
   // Check if already authenticated or visiting the admin route/query/hash
-  const isAuthSession = sessionStorage.getItem("admin_authenticated") === "true";
-  const isAdminRoute = 
+  const isAuthSession =
+    sessionStorage.getItem("admin_authenticated") === "true";
+  const isAdminRoute =
     window.location.pathname === "/admin/iit_ism_1290e-summit" ||
     window.location.search.includes("admin=true") ||
     window.location.hash === "#admin";
@@ -382,7 +392,9 @@ adminLoginForm.addEventListener("submit", async (e) => {
   } catch (err) {
     // Fetch failed entirely (server not running)
     connectionFailed = true;
-    console.warn("Express server not running, falling back to client-side check...");
+    console.warn(
+      "Express server not running, falling back to client-side check...",
+    );
   }
 
   // Fallback for static servers (like VS Code Live Server on port 5501)
@@ -393,7 +405,9 @@ adminLoginForm.addEventListener("submit", async (e) => {
       sessionStorage.setItem("admin_authenticated", "true");
       adminModal.classList.remove("open");
       enterAdminMode();
-      alert("Authenticated via client-side fallback (Live Server detected).\n\nNOTE: You can edit the page, but 'Save Changes' will only work if you run the Node.js server (using 'npm start' on port 3000).");
+      alert(
+        "Authenticated via client-side fallback (Live Server detected).\n\nNOTE: You can edit the page, but 'Save Changes' will only work if you run the Node.js server (using 'npm start' on port 3000).",
+      );
     } else {
       adminLoginError.textContent = "Invalid passcode";
     }
@@ -410,37 +424,48 @@ function handleAdminLinkDblClick(e) {
   if (!document.body.classList.contains("admin-mode")) return;
   e.preventDefault();
   e.stopPropagation();
-  
+
   const link = e.currentTarget;
   const currentHref = link.getAttribute("href") || "";
-  const newHref = prompt(`Change link URL for "${link.textContent.trim()}":`, currentHref);
-  
+  const newHref = prompt(
+    `Change link URL for "${link.textContent.trim()}":`,
+    currentHref,
+  );
+
   if (newHref !== null) {
     let formattedHref = newHref.trim();
-    if (formattedHref && 
-        !formattedHref.startsWith("#") && 
-        !formattedHref.startsWith("/") && 
-        !formattedHref.startsWith("mailto:") && 
-        !formattedHref.startsWith("tel:") && 
-        !/^(https?:\/\/|\/\/)/i.test(formattedHref)) {
+    if (
+      formattedHref &&
+      !formattedHref.startsWith("#") &&
+      !formattedHref.startsWith("/") &&
+      !formattedHref.startsWith("mailto:") &&
+      !formattedHref.startsWith("tel:") &&
+      !/^(https?:\/\/|\/\/)/i.test(formattedHref)
+    ) {
       formattedHref = "https://" + formattedHref;
     }
 
     const linkText = link.textContent.trim().toLowerCase();
-    
+
     // Globally update "Buy Tickets" and "IIC" duplicate links
     if (linkText.includes("buy ticket") || linkText === "iic") {
       let count = 0;
-      document.querySelectorAll("a").forEach(el => {
+      document.querySelectorAll("a").forEach((el) => {
         const elText = el.textContent.trim().toLowerCase();
         if (elText.includes("buy ticket") || elText === "iic") {
-          if ((linkText.includes("buy ticket") && elText.includes("buy ticket")) || (linkText === "iic" && elText === "iic")) {
+          if (
+            (linkText.includes("buy ticket") &&
+              elText.includes("buy ticket")) ||
+            (linkText === "iic" && elText === "iic")
+          ) {
             el.setAttribute("href", formattedHref);
             count++;
           }
         }
       });
-      alert(`Updated all ${count} matching "${link.textContent.trim()}" links on the page.\nMake sure to save changes!`);
+      alert(
+        `Updated all ${count} matching "${link.textContent.trim()}" links on the page.\nMake sure to save changes!`,
+      );
     } else {
       // For event links and others, only update the clicked link
       link.setAttribute("href", formattedHref);
@@ -460,38 +485,73 @@ function enterAdminMode() {
     if (groups.length > 0) {
       const firstGroup = groups[0];
       const originalCards = Array.from(firstGroup.children);
-      originalCards.forEach(card => {
+      originalCards.forEach((card) => {
         if (!card.classList.contains("cloned")) {
           track.appendChild(card);
         } else {
           card.remove();
         }
       });
-      groups.forEach(g => g.remove());
+      groups.forEach((g) => g.remove());
     }
-    track.querySelectorAll(".cloned").forEach(el => el.remove());
+    track.querySelectorAll(".cloned").forEach((el) => el.remove());
   }
 
   // Make editable: headings, paragraphs, strong text, span tags in cards, etc.
   const editableSelectors = [
-    "h1", "h2", "h3:not(.hero-brand-title)", "h4", "p", 
-    ".event-link", ".member-name", ".member-role", 
-    ".timeline-card h4", ".timeline-card p", ".event-time", ".event-venue",
-    ".sponsor-card span", ".button-primary", ".button-secondary", ".iic-badge", ".google-form-link"
+    "h1",
+    "h2",
+    "h3:not(.hero-brand-title)",
+    "h4",
+    "p",
+    "strong",
+    ".event-link",
+    ".member-name",
+    ".member-role",
+    ".timeline-card h4",
+    ".timeline-card p",
+    ".event-time",
+    ".event-venue",
+    ".sponsor-card span",
+    ".button-primary",
+    ".button-secondary",
+    ".iic-badge",
+    ".google-form-link",
+    ".schedule-tab",
+    ".footer-links a",
   ];
-  
-  document.querySelectorAll(editableSelectors.join(", ")).forEach(el => {
+
+  document.querySelectorAll(editableSelectors.join(", ")).forEach((el) => {
     el.setAttribute("contenteditable", "true");
   });
 
   // Set up double-click URLs for Buy Tickets, IIC, Event, and Form links
-  const editableLinks = document.querySelectorAll(".button-primary, .button-secondary, .iic-badge, .event-link, .google-form-link");
-  editableLinks.forEach(link => {
+  const editableLinks = document.querySelectorAll(
+    ".button-primary, .button-secondary, .iic-badge, .event-link, .google-form-link",
+  );
+  editableLinks.forEach((link) => {
     link.removeEventListener("click", handleAdminLinkClick);
     link.removeEventListener("dblclick", handleAdminLinkDblClick);
     link.addEventListener("click", handleAdminLinkClick);
     link.addEventListener("dblclick", handleAdminLinkDblClick);
-    link.setAttribute("title", "Double-click to edit link destination, edit text directly.");
+    link.setAttribute(
+      "title",
+      "Double-click to edit link destination, edit text directly.",
+    );
+  });
+
+  // Also make footer links editable and bind double-click handler
+  const footerLinks = document.querySelectorAll(".footer-links a");
+  footerLinks.forEach((link) => {
+    link.setAttribute("contenteditable", "true");
+    link.removeEventListener("click", handleAdminLinkClick);
+    link.removeEventListener("dblclick", handleAdminLinkDblClick);
+    link.addEventListener("click", handleAdminLinkClick);
+    link.addEventListener("dblclick", handleAdminLinkDblClick);
+    link.setAttribute(
+      "title",
+      "Double-click to edit link destination, edit text directly.",
+    );
   });
 
   // Attach delete buttons to existing cards
@@ -518,10 +578,12 @@ function enterAdminMode() {
 
 function addDeleteButtons() {
   // Clear any existing delete buttons first
-  document.querySelectorAll(".admin-delete-btn").forEach(btn => btn.remove());
+  document.querySelectorAll(".admin-delete-btn").forEach((btn) => btn.remove());
 
-  const cards = document.querySelectorAll(".event-card, .member-card, .timeline-event, .faq-item, .sponsor-card");
-  cards.forEach(card => {
+  const cards = document.querySelectorAll(
+    ".event-card, .member-card, .timeline-event, .faq-item, .sponsor-card",
+  );
+  cards.forEach((card) => {
     const deleteBtn = document.createElement("button");
     deleteBtn.className = "admin-delete-btn";
     deleteBtn.innerHTML = "×";
@@ -532,7 +594,7 @@ function addDeleteButtons() {
         card.remove();
       }
     });
-    
+
     // For timeline event, append delete button to the timeline-card for styling
     if (card.classList.contains("timeline-event")) {
       const timelineCard = card.querySelector(".timeline-card");
@@ -549,29 +611,31 @@ function addDeleteButtons() {
 
 function setupImageUploads() {
   // Remove existing upload overlays
-  document.querySelectorAll(".admin-image-upload-overlay").forEach(overlay => overlay.remove());
+  document
+    .querySelectorAll(".admin-image-upload-overlay")
+    .forEach((overlay) => overlay.remove());
 
   // 1. Members image upload
   const memberCards = document.querySelectorAll(".member-card");
-  memberCards.forEach(card => {
+  memberCards.forEach((card) => {
     const wrapper = card.querySelector(".member-image-wrapper");
     const img = card.querySelector(".member-img");
     const nameEl = card.querySelector(".member-name");
-    
+
     if (!wrapper || !img) return;
 
     const overlay = document.createElement("div");
     overlay.className = "admin-image-upload-overlay";
     overlay.innerHTML = `<button class="admin-image-upload-btn"><i data-lucide="image"></i> Change Photo</button>`;
-    
+
     overlay.addEventListener("click", (e) => {
       e.stopPropagation();
-      
+
       const fileInput = document.createElement("input");
       fileInput.type = "file";
       fileInput.accept = "image/*";
       fileInput.style.display = "none";
-      
+
       fileInput.addEventListener("change", (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -594,7 +658,7 @@ function setupImageUploads() {
 
   // 2. Sponsors image upload (Change logo option)
   const sponsorCards = document.querySelectorAll(".sponsor-card");
-  sponsorCards.forEach(card => {
+  sponsorCards.forEach((card) => {
     const img = card.querySelector("img");
     const categoryEl = card.querySelector("span");
     if (!img) return;
@@ -602,15 +666,15 @@ function setupImageUploads() {
     const overlay = document.createElement("div");
     overlay.className = "admin-image-upload-overlay";
     overlay.innerHTML = `<button class="admin-image-upload-btn"><i data-lucide="image"></i> Change Logo</button>`;
-    
+
     overlay.addEventListener("click", (e) => {
       e.stopPropagation();
-      
+
       const fileInput = document.createElement("input");
       fileInput.type = "file";
       fileInput.accept = "image/*";
       fileInput.style.display = "none";
-      
+
       fileInput.addEventListener("change", (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -631,12 +695,14 @@ function setupImageUploads() {
     card.appendChild(overlay);
   });
 
-  if (typeof lucide !== 'undefined') lucide.createIcons();
+  if (typeof lucide !== "undefined") lucide.createIcons();
 }
 
 function injectInSectionAddButtons() {
   // Clear any existing in-section add buttons first
-  document.querySelectorAll(".admin-insection-add-btn").forEach(btn => btn.remove());
+  document
+    .querySelectorAll(".admin-insection-add-btn")
+    .forEach((btn) => btn.remove());
 
   // Helper to create an add button
   function createAddButton(text, iconName, onClickHandler) {
@@ -662,14 +728,17 @@ function injectInSectionAddButtons() {
         <a href="#" class="event-link" contenteditable="true">Learn More →</a>
       `;
       eventsGrid.insertBefore(newCard, btn);
-      
+
       const link = newCard.querySelector(".event-link");
       if (link) {
         link.addEventListener("click", handleAdminLinkClick);
         link.addEventListener("dblclick", handleAdminLinkDblClick);
-        link.setAttribute("title", "Double-click to edit link destination, edit text directly.");
+        link.setAttribute(
+          "title",
+          "Double-click to edit link destination, edit text directly.",
+        );
       }
-      
+
       addDeleteButtons();
       newCard.scrollIntoView({ behavior: "smooth" });
     });
@@ -702,7 +771,7 @@ function injectInSectionAddButtons() {
 
   // 3. Timeline Event Add Buttons (for each day timeline)
   const timelines = document.querySelectorAll(".schedule-timeline");
-  timelines.forEach(timeline => {
+  timelines.forEach((timeline) => {
     const btn = createAddButton("Add Event to Timeline", "plus-circle", () => {
       const newEvent = document.createElement("div");
       newEvent.className = "timeline-event";
@@ -732,7 +801,7 @@ function injectInSectionAddButtons() {
         <button class="faq-question" contenteditable="true">New Frequently Asked Question?</button>
         <div class="faq-answer"><p contenteditable="true">Answer details go here. Explain the rules, requirements, or logistics.</p></div>
       `;
-      
+
       // Register click to expand/collapse FAQ question
       const button = newItem.querySelector(".faq-question");
       button?.addEventListener("click", () => {
@@ -763,12 +832,16 @@ function injectInSectionAddButtons() {
     sponsorGrid.appendChild(btn);
   }
 
-  if (typeof lucide !== 'undefined') lucide.createIcons();
+  if (typeof lucide !== "undefined") lucide.createIcons();
 }
 
 // Exit Admin Mode
 adminExitBtn.addEventListener("click", () => {
-  if (confirm("Are you sure you want to exit Admin Mode? Any unsaved changes will be lost.")) {
+  if (
+    confirm(
+      "Are you sure you want to exit Admin Mode? Any unsaved changes will be lost.",
+    )
+  ) {
     sessionStorage.removeItem("admin_authenticated");
     window.location.href = "/";
   }
@@ -798,24 +871,36 @@ adminSaveBtn.addEventListener("click", async () => {
   }
 
   // Remove admin-specific elements in the clone
-  docClone.querySelectorAll(".admin-delete-btn").forEach(btn => btn.remove());
-  docClone.querySelectorAll(".admin-insection-add-btn").forEach(btn => btn.remove());
-  docClone.querySelectorAll(".admin-image-upload-overlay").forEach(overlay => overlay.remove());
-  docClone.querySelectorAll(".admin-social-editor").forEach(editor => editor.remove());
-  docClone.querySelectorAll("[contenteditable]").forEach(el => {
+  docClone.querySelectorAll(".admin-delete-btn").forEach((btn) => btn.remove());
+  docClone
+    .querySelectorAll(".admin-insection-add-btn")
+    .forEach((btn) => btn.remove());
+  docClone
+    .querySelectorAll(".admin-image-upload-overlay")
+    .forEach((overlay) => overlay.remove());
+  docClone
+    .querySelectorAll(".admin-social-editor")
+    .forEach((editor) => editor.remove());
+  docClone.querySelectorAll("[contenteditable]").forEach((el) => {
     el.removeAttribute("contenteditable");
   });
 
   // Remove dynamic cursor and star elements
-  docClone.querySelectorAll(".cursor-dot, .cursor-ring, .cursor-glow, .star").forEach(el => el.remove());
+  docClone
+    .querySelectorAll(".cursor-dot, .cursor-ring, .cursor-glow, .star")
+    .forEach((el) => el.remove());
 
   // Remove temporary admin tooltips
-  docClone.querySelectorAll(".button-primary, .button-secondary, .iic-badge, .event-link").forEach(link => {
-    link.removeAttribute("title");
-  });
+  docClone
+    .querySelectorAll(
+      ".button-primary, .button-secondary, .iic-badge, .event-link",
+    )
+    .forEach((link) => {
+      link.removeAttribute("title");
+    });
 
   // Remove temporary scroll reveal visible states so animations trigger on fresh load
-  docClone.querySelectorAll(".scroll-reveal").forEach(el => {
+  docClone.querySelectorAll(".scroll-reveal").forEach((el) => {
     el.classList.remove("visible");
   });
 
@@ -830,11 +915,17 @@ adminSaveBtn.addEventListener("click", async () => {
   });
 
   // Remove Chrome extension stylesheet links
-  docClone.querySelectorAll("link[href^='chrome-extension://']").forEach(link => link.remove());
+  docClone
+    .querySelectorAll("link[href^='chrome-extension://']")
+    .forEach((link) => link.remove());
 
   // Remove Live Server scripts
-  docClone.querySelectorAll("script").forEach(script => {
-    if (script.textContent.includes("Live reload enabled.") || script.textContent.includes("live-server") || script.textContent.includes("WebSocket")) {
+  docClone.querySelectorAll("script").forEach((script) => {
+    if (
+      script.textContent.includes("Live reload enabled.") ||
+      script.textContent.includes("live-server") ||
+      script.textContent.includes("WebSocket")
+    ) {
       script.remove();
     }
   });
@@ -846,20 +937,20 @@ adminSaveBtn.addEventListener("click", async () => {
     if (groups.length > 0) {
       const firstGroup = groups[0];
       const originalCards = Array.from(firstGroup.children);
-      originalCards.forEach(card => {
+      originalCards.forEach((card) => {
         if (!card.classList.contains("cloned")) {
           cloneTrack.appendChild(card);
         }
       });
-      groups.forEach(g => g.remove());
+      groups.forEach((g) => g.remove());
     }
-    cloneTrack.querySelectorAll(".cloned").forEach(el => el.remove());
+    cloneTrack.querySelectorAll(".cloned").forEach((el) => el.remove());
   }
 
   // Reset admin modal and admin bar back to standard closed state in HTML source
   const bar = docClone.querySelector("#admin-control-bar");
   if (bar) bar.classList.remove("open");
-  
+
   const cloneSaveBtn = docClone.querySelector("#admin-save");
   if (cloneSaveBtn) {
     cloneSaveBtn.removeAttribute("disabled");
@@ -876,7 +967,7 @@ adminSaveBtn.addEventListener("click", async () => {
   }
 
   // Clean all image URLs to be relative in the saved HTML (removes absolute port origins)
-  docClone.querySelectorAll("img").forEach(img => {
+  docClone.querySelectorAll("img").forEach((img) => {
     const srcAttr = img.getAttribute("src");
     if (srcAttr && srcAttr.includes("/public/")) {
       const idx = srcAttr.indexOf("/public/");
@@ -890,7 +981,10 @@ adminSaveBtn.addEventListener("click", async () => {
     const response = await fetch(`${API_BASE_URL}/api/save`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ html: finalHtml, page_path: window.location.pathname }),
+      body: JSON.stringify({
+        html: finalHtml,
+        page_path: window.location.pathname,
+      }),
     });
 
     const data = await response.json();
@@ -906,44 +1000,48 @@ adminSaveBtn.addEventListener("click", async () => {
     adminSaveBtn.textContent = "Save Changes";
     adminSaveBtn.disabled = false;
     // Force Lucide icons to update on our button locally if needed
-    if (typeof lucide !== 'undefined') lucide.createIcons();
+    if (typeof lucide !== "undefined") lucide.createIcons();
   }
 });
 
-
 function setupTeamCarousel() {
   const track = document.getElementById("team-track");
-  if (!track || document.body.classList.contains("admin-mode") || track.classList.contains("static-grid")) return;
-  
+  if (
+    !track ||
+    document.body.classList.contains("admin-mode") ||
+    track.classList.contains("static-grid")
+  )
+    return;
+
   // Remove existing cloned or group elements
   const groups = track.querySelectorAll(".team-group");
   if (groups.length > 0) {
     const firstGroup = groups[0];
     const originalCards = Array.from(firstGroup.children);
-    originalCards.forEach(card => track.appendChild(card));
-    groups.forEach(g => g.remove());
+    originalCards.forEach((card) => track.appendChild(card));
+    groups.forEach((g) => g.remove());
   }
-  track.querySelectorAll(".cloned").forEach(el => el.remove());
-  
+  track.querySelectorAll(".cloned").forEach((el) => el.remove());
+
   const originalCards = Array.from(track.children);
   if (originalCards.length === 0) return;
-  
+
   // Calculate card width + gap (360px + 32px gap = 392px)
   const itemWidth = 392;
   const setWidth = originalCards.length * itemWidth;
-  
+
   // Calculate how many times we need to repeat the set to exceed the viewport width
   const minWidthRequired = window.innerWidth + 400;
   const K = Math.ceil(minWidthRequired / setWidth);
-  
+
   // Create Group 1
   const group1 = document.createElement("div");
   group1.className = "team-group";
-  
+
   // Populate Group 1 (including repetitions if K > 1)
   const baseCards = [];
   for (let k = 0; k < K; k++) {
-    originalCards.forEach(card => {
+    originalCards.forEach((card) => {
       if (k === 0) {
         group1.appendChild(card);
         baseCards.push(card);
@@ -951,24 +1049,28 @@ function setupTeamCarousel() {
         const clone = card.cloneNode(true);
         clone.classList.add("cloned");
         clone.removeAttribute("contenteditable");
-        clone.querySelectorAll("[contenteditable]").forEach(el => el.removeAttribute("contenteditable"));
+        clone
+          .querySelectorAll("[contenteditable]")
+          .forEach((el) => el.removeAttribute("contenteditable"));
         group1.appendChild(clone);
         baseCards.push(clone);
       }
     });
   }
-  
+
   // Create Group 2 (Clone of Group 1)
   const group2 = document.createElement("div");
   group2.className = "team-group cloned";
-  baseCards.forEach(card => {
+  baseCards.forEach((card) => {
     const clone = card.cloneNode(true);
     clone.classList.add("cloned");
     clone.removeAttribute("contenteditable");
-    clone.querySelectorAll("[contenteditable]").forEach(el => el.removeAttribute("contenteditable"));
+    clone
+      .querySelectorAll("[contenteditable]")
+      .forEach((el) => el.removeAttribute("contenteditable"));
     group2.appendChild(clone);
   });
-  
+
   // Append groups to track
   track.appendChild(group1);
   track.appendChild(group2);
@@ -976,9 +1078,11 @@ function setupTeamCarousel() {
 
 function setupSocialEditors() {
   // Remove existing editors if any
-  document.querySelectorAll(".admin-social-editor").forEach(el => el.remove());
+  document
+    .querySelectorAll(".admin-social-editor")
+    .forEach((el) => el.remove());
 
-  document.querySelectorAll(".member-card").forEach(card => {
+  document.querySelectorAll(".member-card").forEach((card) => {
     const editor = document.createElement("div");
     editor.className = "admin-social-editor";
     editor.innerHTML = `
@@ -1022,11 +1126,13 @@ function setupSocialEditors() {
       if (platform) {
         const absoluteUrl = url ? formatAbsoluteUrl(url) : "";
         card.setAttribute(`data-${platform}`, absoluteUrl);
-        
+
         // Rebuild socials HTML in the card
         updateCardSocialsHTML(card);
-        alert(`Updated ${platform} link successfully! Make sure to save changes.`);
-        
+        alert(
+          `Updated ${platform} link successfully! Make sure to save changes.`,
+        );
+
         // Reset editor
         select.value = "";
         inputRow.style.display = "none";
@@ -1062,7 +1168,7 @@ function updateCardSocialsHTML(card) {
       card.appendChild(socialsContainer);
     }
   }
-  
+
   const instagram = card.getAttribute("data-instagram") || "";
   const facebook = card.getAttribute("data-facebook") || "";
   const twitter = card.getAttribute("data-twitter") || "";
@@ -1070,11 +1176,16 @@ function updateCardSocialsHTML(card) {
   const reddit = card.getAttribute("data-reddit") || "";
 
   let socialsHtml = "";
-  if (instagram) socialsHtml += `<a href="${formatAbsoluteUrl(instagram)}" class="social-icon instagram" target="_blank"><i class="fa-brands fa-instagram"></i></a>`;
-  if (facebook) socialsHtml += `<a href="${formatAbsoluteUrl(facebook)}" class="social-icon facebook" target="_blank"><i class="fa-brands fa-facebook"></i></a>`;
-  if (twitter) socialsHtml += `<a href="${formatAbsoluteUrl(twitter)}" class="social-icon twitter" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>`;
-  if (linkedin) socialsHtml += `<a href="${formatAbsoluteUrl(linkedin)}" class="social-icon linkedin" target="_blank"><i class="fa-brands fa-linkedin"></i></a>`;
-  if (reddit) socialsHtml += `<a href="${formatAbsoluteUrl(reddit)}" class="social-icon reddit" target="_blank"><i class="fa-brands fa-reddit"></i></a>`;
+  if (instagram)
+    socialsHtml += `<a href="${formatAbsoluteUrl(instagram)}" class="social-icon instagram" target="_blank"><i class="fa-brands fa-instagram"></i></a>`;
+  if (facebook)
+    socialsHtml += `<a href="${formatAbsoluteUrl(facebook)}" class="social-icon facebook" target="_blank"><i class="fa-brands fa-facebook"></i></a>`;
+  if (twitter)
+    socialsHtml += `<a href="${formatAbsoluteUrl(twitter)}" class="social-icon twitter" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>`;
+  if (linkedin)
+    socialsHtml += `<a href="${formatAbsoluteUrl(linkedin)}" class="social-icon linkedin" target="_blank"><i class="fa-brands fa-linkedin"></i></a>`;
+  if (reddit)
+    socialsHtml += `<a href="${formatAbsoluteUrl(reddit)}" class="social-icon reddit" target="_blank"><i class="fa-brands fa-reddit"></i></a>`;
 
   socialsContainer.innerHTML = socialsHtml;
 }
@@ -1089,18 +1200,17 @@ function formatAbsoluteUrl(url) {
 }
 
 function sanitizeAllLinks() {
-  document.querySelectorAll("a").forEach(link => {
+  document.querySelectorAll("a").forEach((link) => {
     const href = link.getAttribute("href");
-    if (href && 
-        !href.startsWith("#") && 
-        !href.startsWith("/") && 
-        !href.startsWith("mailto:") && 
-        !href.startsWith("tel:") && 
-        !/^(https?:\/\/|\/\/)/i.test(href)) {
+    if (
+      href &&
+      !href.startsWith("#") &&
+      !href.startsWith("/") &&
+      !href.startsWith("mailto:") &&
+      !href.startsWith("tel:") &&
+      !/^(https?:\/\/|\/\/)/i.test(href)
+    ) {
       link.setAttribute("href", "https://" + href);
     }
   });
 }
-
-
-
