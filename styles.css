@@ -1044,26 +1044,105 @@ body::before {
 }
 
 .site-footer {
-  padding: 2rem 0 3rem;
+  padding: 4rem 0 2rem;
+  border-top: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.4);
+  margin-top: 4rem;
 }
 
 .footer-inner {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 3rem;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 3rem;
+}
+
+.footer-section {
   display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+}
+
+.footer-section h4 {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin: 0 0 1rem 0;
+  font-weight: 700;
+}
+
+.footer-section p {
   color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
 }
 
 .footer-links {
   display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .footer-links a {
   color: var(--muted);
   text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+}
+
+.footer-links a:hover {
+  color: var(--accent);
+  transform: translateX(4px);
+}
+
+.social-links {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.social-links a {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 118, 0, 0.1);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--accent);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.social-links a:hover {
+  background: rgba(255, 118, 0, 0.2);
+  border-color: var(--accent);
+  transform: translateY(-3px);
+}
+
+.footer-bottom {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding-top: 1rem;
+}
+
+.footer-bottom p {
+  margin: 0;
 }
 
 @media (max-width: 950px) {
@@ -1461,8 +1540,14 @@ body.admin-mode .team-track {
 .event-card:hover {
   transform: translateY(-8px);
   border-color: var(--accent);
-  background: linear-gradient(185deg, rgba(255, 118, 0, 0.08) 0%, rgba(18, 18, 18, 0.95) 70%);
-  box-shadow: 0 20px 40px rgba(255, 118, 0, 0.12), var(--shadow);
+  background: linear-gradient(
+    185deg,
+    rgba(255, 118, 0, 0.08) 0%,
+    rgba(18, 18, 18, 0.95) 70%
+  );
+  box-shadow:
+    0 20px 40px rgba(255, 118, 0, 0.12),
+    var(--shadow);
 }
 
 /* Sponsor Cards Hover */
@@ -1480,7 +1565,9 @@ body.admin-mode .team-track {
 .member-card:hover {
   transform: translateY(-8px);
   border-color: var(--accent);
-  box-shadow: 0 20px 40px rgba(255, 118, 0, 0.1), var(--shadow);
+  box-shadow:
+    0 20px 40px rgba(255, 118, 0, 0.1),
+    var(--shadow);
 }
 .member-card:hover .member-img {
   transform: scale(1.08);
@@ -1501,11 +1588,14 @@ body.admin-mode .team-track {
 }
 .timeline-card:hover {
   transform: translateX(5px);
-  background: linear-gradient(90deg, rgba(255, 118, 0, 0.08) 0%, rgba(18, 18, 18, 0.95) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 118, 0, 0.08) 0%,
+    rgba(18, 18, 18, 0.95) 100%
+  );
   border-color: var(--accent);
   box-shadow: 0 10px 30px rgba(255, 118, 0, 0.08);
 }
-
 
 /* --- ADMIN MODE STYLES --- */
 
@@ -1603,12 +1693,16 @@ body.admin-mode .team-track {
   background: rgba(18, 18, 18, 0.95);
   border: 1px solid var(--accent);
   border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 118, 0, 0.15);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.8),
+    0 0 20px rgba(255, 118, 0, 0.15);
   backdrop-filter: blur(10px);
   z-index: 9999;
   opacity: 0;
   pointer-events: none;
-  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+  transition:
+    transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    opacity 0.3s ease;
   padding: 1rem 1.5rem;
 }
 
@@ -1690,7 +1784,9 @@ body.admin-mode .member-card {
   font-weight: bold;
   font-size: 14px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  transition: background 0.2s, transform 0.2s;
+  transition:
+    background 0.2s,
+    transform 0.2s;
 }
 
 .admin-delete-btn:hover {
@@ -1821,7 +1917,10 @@ body.admin-mode .sponsor-card .admin-image-upload-overlay {
   pointer-events: none;
 }
 
-body.admin-mode .sponsor-card .admin-image-upload-overlay .admin-image-upload-btn {
+body.admin-mode
+  .sponsor-card
+  .admin-image-upload-overlay
+  .admin-image-upload-btn {
   pointer-events: auto;
 }
 
@@ -1837,7 +1936,9 @@ body.admin-mode .sponsor-card .admin-image-upload-overlay .admin-image-upload-bt
 .social-icon {
   color: var(--muted);
   font-size: 1.15rem;
-  transition: color 0.25s ease, transform 0.25s ease;
+  transition:
+    color 0.25s ease,
+    transform 0.25s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1915,5 +2016,3 @@ body.admin-mode .sponsor-card .admin-image-upload-overlay .admin-image-upload-bt
   box-shadow: 0 0 18px rgba(255, 118, 0, 0.45);
   transform: translateY(-1px);
 }
-
-

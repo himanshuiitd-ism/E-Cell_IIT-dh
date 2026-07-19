@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buy Tickets - E-Summit 2026 | IIT ISM Dhanbad</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    .tickets-page {
+      padding: 2rem 0;
+      min-height: calc(100vh - 200px);
+    }
+
+    .tickets-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .tickets-header h1 {
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--accent), #ff9d3d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .tickets-header p {
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    .step-indicator {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 3rem;
+      flex-wrap: wrap;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      position: relative;
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 118, 0, 0.2);
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: var(--accent);
+      transition: all 0.3s ease;
+    }
+
+    .step.active .step-number {
+      background: var(--accent);
+      color: #000;
+      box-shadow: 0 0 20px rgba(255, 118, 0, 0.5);
+    }
+
+    .step.completed .step-number {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .step-label {
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .step.active .step-label {
+      color: var(--accent);
+    }
+
+    /* Ticket Selection */
+    .tickets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .ticket-card {
+      background: rgba(255, 118, 0, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+
+    .ticket-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+    }
+
+    .ticket-card:hover {
+      border-color: var(--accent);
+      background: rgba(255, 118, 0, 0.08);
+      transform: translateY(-4px);
+    }
+
+    .ticket-card.selected {
+      border-color: var(--accent);
+      background: rgba(255, 118, 0, 0.12);
+      box-shadow: 0 0 30px rgba(255, 118, 0, 0.2);
+    }
+
+    .ticket-badge {
+      display: inline-block;
+      background: var(--accent);
+      color: #000;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      letter-spacing: 0.5px;
+    }
+
+    .ticket-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .ticket-description {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+
+    .ticket-price {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .ticket-price-label {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .ticket-features {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .ticket-features li {
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 0.5rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .ticket-features li::before {
+      content: '✓';
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .quantity-selector {
+      margin-top: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-top: 1px solid var(--border);
+      padding-top: 1.5rem;
+    }
+
+    .quantity-label {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .quantity-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255, 118, 0, 0.1);
+      border-radius: 6px;
+      padding: 0.25rem;
+    }
+
+    .quantity-btn {
+      background: transparent;
+      border: none;
+      color: var(--accent);
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      font-weight: 700;
+    }
+
+    .quantity-btn:hover {
+      background: rgba(255, 118, 0, 0.2);
+    }
+
+    .quantity-input {
+      width: 40px;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      text-align: center;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .quantity-input:focus {
+      outline: none;
+    }
+
+    /* Form Steps */
+    .form-step {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .form-step.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+      display: block;
+      color: var(--text);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+    }
+
+    .form-input,
+    .form-select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 118, 0, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-input:focus,
+    .form-select:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(255, 118, 0, 0.08);
+      box-shadow: 0 0 12px rgba(255, 118, 0, 0.1);
+    }
+
+    .form-input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    /* Payment Section */
+    .payment-container {
+      max-width: 500px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .payment-badge {
+      display: inline-block;
+      background: rgba(255, 118, 0, 0.15);
+      color: var(--accent);
+      padding: 0.5rem 1.25rem;
+      border-radius: 25px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--accent);
+    }
+
+    .payment-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+
+    .order-id {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+      letter-spacing: 1px;
+    }
+
+    .qr-container {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      box-shadow: 0 0 30px rgba(255, 118, 0, 0.1);
+    }
+
+    .qr-code {
+      width: 250px;
+      height: 250px;
+      margin: 0 auto;
+      object-fit: contain;
+    }
+
+    .session-timer {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .session-timer-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--accent);
+      font-family: 'Courier New', monospace;
+    }
+
+    .ref-input-group {
+      margin-bottom: 2rem;
+    }
+
+    .ref-input-group input {
+      font-size: 0.9rem;
+      text-align: center;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 1px;
+    }
+
+    /* Order Summary */
+    .order-summary {
+      background: rgba(255, 118, 0, 0.08);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      color: var(--muted);
+    }
+
+    .summary-row.total {
+      border-top: 1px solid var(--border);
+      padding-top: 1rem;
+      margin-top: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      font-size: 1.1rem;
+    }
+
+    .summary-row.total .price {
+      color: var(--accent);
+      font-size: 1.3rem;
+    }
+
+    .price {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Buttons */
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 2rem;
+    }
+
+    .button-back {
+      padding: 0.75rem 2rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 0.9rem;
+    }
+
+    .button-back:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .button-next,
+    .button-done {
+      padding: 0.75rem 2rem;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 0.9rem;
+      min-width: 200px;
+      box-shadow: 0 0 20px rgba(255, 118, 0, 0.3);
+    }
+
+    .button-next:hover,
+    .button-done:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(255, 118, 0, 0.5);
+    }
+
+    .button-next:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Admin Mode */
+    .admin-edit-btn {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 50px;
+      height: 50px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 50%;
+      font-size: 1.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(255, 118, 0, 0.4);
+      transition: all 0.3s ease;
+      z-index: 20;
+    }
+
+    .admin-edit-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 30px rgba(255, 118, 0, 0.6);
+    }
+
+    .admin-panel {
+      position: fixed;
+      bottom: 80px;
+      right: 2rem;
+      background: var(--surface-strong);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      max-width: 400px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+      z-index: 20;
+      display: none;
+    }
+
+    .admin-panel.show {
+      display: block;
+    }
+
+    .admin-panel h3 {
+      margin-top: 0;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+    }
+
+    .admin-section {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .admin-section:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .admin-label {
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .admin-input {
+      width: 100%;
+      padding: 0.5rem;
+      background: rgba(255, 118, 0, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .admin-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .admin-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: color 0.2s ease;
+    }
+
+    .admin-close:hover {
+      color: var(--accent);
+    }
+
+    .admin-save-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 0.85rem;
+    }
+
+    .admin-save-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 15px rgba(255, 118, 0, 0.4);
+    }
+
+    @media (max-width: 768px) {
+      .tickets-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .button-group {
+        flex-direction: column-reverse;
+      }
+
+      .button-next,
+      .button-done,
+      .button-back {
+        width: 100%;
+      }
+
+      .admin-panel {
+        bottom: 70px;
+        right: 1rem;
+        max-width: calc(100vw - 2rem);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <button class="nav-toggle" aria-label="Open menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="sidebar" aria-hidden="true" class="lucide lucide-sidebar"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M9 3v18"></path></svg>
+      </button>
+
+      <nav class="site-nav nav-left">
+        <button class="nav-close" aria-label="Close menu">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" aria-hidden="true" class="lucide lucide-x"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
+        <a href="/">Home</a>
+        <a href="/#events">Events</a>
+        <a href="/#schedule">Schedule</a>
+        <a href="/#sponsors">Sponsors</a>
+        <a href="/#faq">FAQs</a>
+        <a href="/#register">Contact Us</a>
+        <a href="/members.html">Team</a>
+        <div class="mobile-nav-footer">
+          <a class="button button-primary" href="/tickets.html">Buy Tickets</a>
+          <a class="button button-pill iic-badge" href="https://iic.iitdh.ac.in" target="_blank" rel="noopener">IIC</a>
+        </div>
+      </nav>
+
+      <div class="nav-overlay"></div>
+
+      <a class="brand brand-center mobile-logo" href="/">
+        <img src="public/logo.png" alt="E-Summit logo">
+        <span>E-Summit</span>
+      </a>
+
+      <div class="header-actions desktop-only">
+        <a class="button button-primary" href="/tickets.html">Buy Tickets</a>
+        <a class="button button-pill iic-badge" href="iitism.ac.in" target="_blank" rel="noopener">IIT DH</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="tickets-page">
+      <div class="container">
+        <div class="tickets-header">
+          <h1>CHOOSE YOUR SEAT.</h1>
+          <p>Select a ticket type to begin your E-Summit 2026 journey</p>
+        </div>
+
+        <div class="step-indicator">
+          <div class="step active" data-step="1">
+            <div class="step-number">1</div>
+            <div class="step-label">Select Ticket</div>
+          </div>
+          <div class="step" data-step="2">
+            <div class="step-number">2</div>
+            <div class="step-label">Attendee Info</div>
+          </div>
+          <div class="step" data-step="3">
+            <div class="step-number">3</div>
+            <div class="step-label">Payment</div>
+          </div>
+        </div>
+
+        <!-- Step 1: Ticket Selection -->
+        <div class="form-step active" data-step="1">
+          <div class="tickets-grid" id="ticketsGrid">
+            <!-- Tickets will be loaded here via JavaScript -->
+          </div>
+
+          <div class="order-summary">
+            <div class="summary-row">
+              <span>Selected Ticket:</span>
+              <span id="summaryTicket">None</span>
+            </div>
+            <div class="summary-row">
+              <span>Quantity:</span>
+              <span id="summaryQuantity">0</span>
+            </div>
+            <div class="summary-row">
+              <span>Price per ticket:</span>
+              <span class="price" id="summaryPrice">₹0</span>
+            </div>
+            <div class="summary-row total">
+              <span>ORDER TOTAL (1 OF 3 MAX):</span>
+              <span class="price" id="summaryTotal">₹0</span>
+            </div>
+          </div>
+
+          <div class="button-group">
+            <button class="button-next" id="proceedToInfo">ENTER DETAILS → ₹0</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Attendee Information -->
+        <div class="form-step" data-step="2">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" class="form-input" id="fullName" placeholder="Enter your full name" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" class="form-input" id="emailAddress" placeholder="Enter your email" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">College Name</label>
+              <input type="text" class="form-input" id="collegeName" placeholder="Enter your college name" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gender</label>
+              <select class="form-select" id="gender">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+                <option value="Prefer not to say">Prefer not to say</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="order-summary">
+            <div class="summary-row">
+              <span>Ticket:</span>
+              <span id="summaryTicket2">Day 1 Pass</span>
+            </div>
+            <div class="summary-row">
+              <span>Quantity:</span>
+              <span id="summaryQuantity2">1</span>
+            </div>
+            <div class="summary-row total">
+              <span>TOTAL:</span>
+              <span class="price" id="summaryTotal2">₹300</span>
+            </div>
+          </div>
+
+          <div class="button-group">
+            <button class="button-back" id="backToTickets">← BACK</button>
+            <button class="button-next" id="proceedToPayment">CHECKOUT → ₹0</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Payment -->
+        <div class="form-step" data-step="3">
+          <div class="payment-container">
+            <div class="payment-badge">AWAITING PAYMENT</div>
+            <h2 class="payment-title">Scan & Pay via UPI</h2>
+            <div class="order-id" id="orderId">Order ID: ORD-XXXXXX</div>
+
+            <div class="qr-container">
+              <img src="https://via.placeholder.com/250x250/111111/ff7600?text=QR+Code" alt="UPI QR Code" class="qr-code" id="qrCode">
+            </div>
+
+            <div class="session-timer">
+              SESSION EXPIRES IN <br>
+              <span class="session-timer-value" id="sessionTimer">29:59</span>
+            </div>
+
+            <div class="ref-input-group">
+              <label class="form-label">TRANSACTION REFERENCE NUMBER (UTR / REF NO.)</label>
+              <input type="text" class="form-input" id="refNumber" placeholder="e.g. 423100123456" />
+            </div>
+
+            <div class="button-group">
+              <button class="button-back" id="backToInfo">← BACK</button>
+              <button class="button-done" id="confirmPayment">I HAVE PAID / CLICK DONE</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h4>E-SUMMIT 2026</h4>
+          <p>Igniting innovation for the defence and space ecosystem at IIT ISM Dhanbad</p>
+        </div>
+        <div class="footer-section">
+          <h4>QUICK LINKS</h4>
+          <div class="footer-links">
+            <a href="/">Home</a>
+            <a href="/#events">Events</a>
+            <a href="/#schedule">Schedule</a>
+            <a href="/members.html">Team</a>
+            <a href="/tickets.html">Tickets</a>
+          </div>
+        </div>
+        <div class="footer-section">
+          <h4>CONTACT</h4>
+          <div class="footer-links">
+            <a href="mailto:outreach.iic@iitdh.ac.in">outreach.iic@iitdh.ac.in</a>
+            <a href="https://www.iitdh.ac.in/">IIT Dhanbad</a>
+            <a href="https://forms.google.com/example" target="_blank" rel="noopener">Feedback Form</a>
+          </div>
+        </div>
+        <div class="footer-section">
+          <h4>FOLLOW US</h4>
+          <div class="social-links">
+            <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="#" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+            <a href="#" title="Facebook"><i class="fab fa-facebook"></i></a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 Institute Innovation Council of IIT ISM Dhanbad. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Admin Edit Button -->
+  <button class="admin-edit-btn" id="adminEditBtn" title="Edit Tickets (Admin)">
+    <i class="fas fa-edit"></i>
+  </button>
+
+  <!-- Admin Panel -->
+  <div class="admin-panel" id="adminPanel">
+    <button class="admin-close" id="adminClose">&times;</button>
+    <h3>EDIT TICKETS</h3>
+    <div id="adminContent"></div>
+  </div>
+
+  <script src="/script.js"></script>
+  <script>
+    // Ticket data management
+    let tickets = [];
+    let selectedTicket = null;
+    let selectedQuantity = 1;
+    let currentStep = 1;
+
+    // Initialize page
+    async function init() {
+      await loadTickets();
+      setupEventListeners();
+      renderTickets();
+    }
+
+    // Load tickets from server
+    async function loadTickets() {
+      try {
+        const response = await fetch('/api/tickets');
+        if (response.ok) {
+          tickets = await response.json();
+        } else {
+          loadDemoTickets();
+        }
+      } catch (error) {
+        console.log('Loading demo tickets...');
+        loadDemoTickets();
+      }
+    }
+
+    // Demo tickets if server not available
+    function loadDemoTickets() {
+      tickets = [
+        {
+          id: 1,
+          name: 'Day 1+ Accommodation',
+          description: 'Access to all Day 1 events + Accommodation',
+          price: 700,
+          features: ['Access to all Day 1 events', 'Keynote & sessions', 'Exam floor access', 'Meals included', 'Hostel stay (Night 1)']
+        },
+        {
+          id: 2,
+          name: 'Both Days Pass',
+          description: 'Access to all Day 1 & Day 2 events with meals',
+          price: 800,
+          features: ['Access to all Day 1 & Day 2 events', 'Keynote & sessions', 'Exam floor access', 'Refreshments', 'Networking opportunities']
+        },
+        {
+          id: 3,
+          name: 'Day 2+ Accommodation',
+          description: 'Access to all Day 2 events + Accommodation',
+          price: 800,
+          features: ['Access to all Day 2 events', 'Keynote & sessions', 'Exam floor access', 'Meals included', 'Hostel stay (Night 2)']
+        }
+      ];
+    }
+
+    // Render tickets
+    function renderTickets() {
+      const grid = document.getElementById('ticketsGrid');
+      grid.innerHTML = '';
+
+      tickets.forEach(ticket => {
+        const card = document.createElement('div');
+        card.className = 'ticket-card' + (selectedTicket?.id === ticket.id ? ' selected' : '');
+        card.innerHTML = `
+          <div class="ticket-badge">SOL 4 / ${ticket.price <= 700 ? 'MAX' : 'LAST'} SEATS</div>
+          <div class="ticket-name">${ticket.name}</div>
+          <div class="ticket-description">${ticket.description}</div>
+          <div class="ticket-price">₹${ticket.price}</div>
+          <div class="ticket-price-label">+ TICKET</div>
+          <ul class="ticket-features">
+            ${ticket.features.map(f => `<li>${f}</li>`).join('')}
+          </ul>
+          <div class="quantity-selector">
+            <span class="quantity-label">QTY</span>
+            <div class="quantity-controls">
+              <button class="quantity-btn" onclick="decreaseQty(${ticket.id})">−</button>
+              <input type="number" class="quantity-input" value="${selectedTicket?.id === ticket.id ? selectedQuantity : 0}" readonly />
+              <button class="quantity-btn" onclick="increaseQty(${ticket.id})">+</button>
+            </div>
+          </div>
+        `;
+        
+        card.addEventListener('click', () => selectTicket(ticket));
+        grid.appendChild(card);
+      });
+
+      updateSummary();
+    }
+
+    // Select ticket
+    function selectTicket(ticket) {
+      selectedTicket = ticket;
+      selectedQuantity = 1;
+      renderTickets();
+    }
+
+    // Quantity controls
+    function increaseQty(ticketId) {
+      if (selectedTicket?.id === ticketId) {
+        selectedQuantity = Math.min(selectedQuantity + 1, 3);
+        renderTickets();
+      }
+    }
+
+    function decreaseQty(ticketId) {
+      if (selectedTicket?.id === ticketId) {
+        selectedQuantity = Math.max(selectedQuantity - 1, 0);
+        if (selectedQuantity === 0) {
+          selectedTicket = null;
+        }
+        renderTickets();
+      }
+    }
+
+    // Update summary
+    function updateSummary() {
+      const ticket = selectedTicket;
+      const total = ticket ? ticket.price * selectedQuantity : 0;
+
+      document.getElementById('summaryTicket').textContent = ticket ? ticket.name : 'None';
+      document.getElementById('summaryQuantity').textContent = selectedQuantity;
+      document.getElementById('summaryPrice').textContent = ticket ? `₹${ticket.price}` : '₹0';
+      document.getElementById('summaryTotal').textContent = `₹${total}`;
+      document.getElementById('proceedToInfo').textContent = `ENTER DETAILS → ₹${total}`;
+      document.getElementById('proceedToInfo').disabled = !ticket || selectedQuantity === 0;
+    }
+
+    // Step navigation
+    function goToStep(step) {
+      currentStep = step;
+      document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active', 'completed'));
+
+      document.querySelector(`[data-step="${step}"].form-step`).classList.add('active');
+      document.querySelectorAll(`[data-step]`).forEach(s => {
+        const stepNum = parseInt(s.dataset.step);
+        if (stepNum < step) s.classList.add('completed');
+        if (stepNum === step) s.classList.add('active');
+      });
+
+      if (step === 2) {
+        document.getElementById('summaryTicket2').textContent = selectedTicket?.name;
+        document.getElementById('summaryQuantity2').textContent = selectedQuantity;
+        document.getElementById('summaryTotal2').textContent = `₹${selectedTicket.price * selectedQuantity}`;
+        document.getElementById('proceedToPayment').textContent = `CHECKOUT → ₹${selectedTicket.price * selectedQuantity}`;
+      } else if (step === 3) {
+        const orderId = 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        document.getElementById('orderId').textContent = `Order ID: ${orderId}`;
+        startSessionTimer();
+      }
+    }
+
+    // Session timer
+    let timerInterval;
+    function startSessionTimer() {
+      let seconds = 30 * 60 - 1;
+      function updateTimer() {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        document.getElementById('sessionTimer').textContent = 
+          `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        seconds--;
+        if (seconds < 0) clearInterval(timerInterval);
+      }
+      updateTimer();
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    // Event listeners
+    function setupEventListeners() {
+      document.getElementById('proceedToInfo').addEventListener('click', () => goToStep(2));
+      document.getElementById('backToTickets').addEventListener('click', () => goToStep(1));
+      document.getElementById('proceedToPayment').addEventListener('click', () => goToStep(3));
+      document.getElementById('backToInfo').addEventListener('click', () => goToStep(2));
+      document.getElementById('confirmPayment').addEventListener('click', confirmOrder);
+
+      // Admin panel
+      document.getElementById('adminEditBtn').addEventListener('click', toggleAdminPanel);
+      document.getElementById('adminClose').addEventListener('click', () => {
+        document.getElementById('adminPanel').classList.remove('show');
+      });
+    }
+
+    // Admin panel
+    function toggleAdminPanel() {
+      const panel = document.getElementById('adminPanel');
+      panel.classList.toggle('show');
+      if (panel.classList.contains('show')) {
+        renderAdminPanel();
+      }
+    }
+
+    function renderAdminPanel() {
+      const content = document.getElementById('adminContent');
+      content.innerHTML = '';
+
+      tickets.forEach((ticket, idx) => {
+        const section = document.createElement('div');
+        section.className = 'admin-section';
+        section.innerHTML = `
+          <div style="margin-bottom: 1rem;">
+            <h4 style="margin: 0 0 0.5rem 0; color: var(--accent); font-size: 0.95rem;">Ticket ${idx + 1}</h4>
+          </div>
+          <label class="admin-label">Name</label>
+          <input type="text" class="admin-input" value="${ticket.name}" data-field="name" data-ticket="${idx}" />
+          
+          <label class="admin-label">Description</label>
+          <input type="text" class="admin-input" value="${ticket.description}" data-field="description" data-ticket="${idx}" />
+          
+          <label class="admin-label">Price (₹)</label>
+          <input type="number" class="admin-input" value="${ticket.price}" data-field="price" data-ticket="${idx}" />
+          
+          <label class="admin-label">Features (comma-separated)</label>
+          <textarea class="admin-input" style="resize: vertical; min-height: 60px;" data-field="features" data-ticket="${idx}">${ticket.features.join(', ')}</textarea>
+        `;
+        content.appendChild(section);
+      });
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'admin-save-btn';
+      saveBtn.textContent = 'SAVE CHANGES';
+      saveBtn.addEventListener('click', saveTicketChanges);
+      content.appendChild(saveBtn);
+    }
+
+    function saveTicketChanges() {
+      document.querySelectorAll('.admin-input').forEach(input => {
+        const ticketIdx = parseInt(input.dataset.ticket);
+        const field = input.dataset.field;
+        const value = input.value;
+
+        if (field === 'features') {
+          tickets[ticketIdx][field] = value.split(',').map(f => f.trim());
+        } else if (field === 'price') {
+          tickets[ticketIdx][field] = parseInt(value);
+        } else {
+          tickets[ticketIdx][field] = value;
+        }
+      });
+
+      renderTickets();
+      alert('Tickets updated! Changes are saved locally.');
+      document.getElementById('adminPanel').classList.remove('show');
+    }
+
+    function confirmOrder() {
+      const name = document.getElementById('fullName').value;
+      const email = document.getElementById('emailAddress').value;
+      const college = document.getElementById('collegeName').value;
+      const ref = document.getElementById('refNumber').value;
+
+      if (!name || !email || !college || !ref) {
+        alert('Please fill in all fields including transaction reference');
+        return;
+      }
+
+      alert(`Order Confirmed!\n\nName: ${name}\nEmail: ${email}\nCollege: ${college}\nTicket: ${selectedTicket.name}\nQuantity: ${selectedQuantity}\nTotal: ₹${selectedTicket.price * selectedQuantity}\n\nThank you for your purchase!`);
+    }
+
+    // Initialize on load
+    init();
+  </script>
+</body>
+</html>
