@@ -933,12 +933,26 @@
           <div class="quantity-selector">
             <span class="quantity-label">QTY</span>
             <div class="quantity-controls">
-              <button class="quantity-btn" onclick="decreaseQty(${ticket.id})">−</button>
+              <button class="quantity-btn" data-action="decrease" data-ticket-id="${ticket.id}">−</button>
               <input type="number" class="quantity-input" value="${selectedTicket?.id === ticket.id ? selectedQuantity : 0}" readonly />
-              <button class="quantity-btn" onclick="increaseQty(${ticket.id})">+</button>
+              <button class="quantity-btn" data-action="increase" data-ticket-id="${ticket.id}">+</button>
             </div>
           </div>
         `;
+        
+        // Add event listeners for quantity buttons
+        const decreaseBtn = card.querySelector('[data-action="decrease"]');
+        const increaseBtn = card.querySelector('[data-action="increase"]');
+        
+        decreaseBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          decreaseQty(ticket.id);
+        });
+        
+        increaseBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          increaseQty(ticket.id);
+        });
         
         card.addEventListener('click', () => selectTicket(ticket));
         grid.appendChild(card);
@@ -956,19 +970,29 @@
 
     // Quantity controls
     function increaseQty(ticketId) {
+      // If this ticket is selected, increase quantity
       if (selectedTicket?.id === ticketId) {
         selectedQuantity = Math.min(selectedQuantity + 1, 3);
+        renderTickets();
+      } else {
+        // If different ticket or no ticket selected, select this ticket with qty 1
+        selectedTicket = tickets.find(t => t.id === ticketId);
+        selectedQuantity = 1;
         renderTickets();
       }
     }
 
     function decreaseQty(ticketId) {
       if (selectedTicket?.id === ticketId) {
-        selectedQuantity = Math.max(selectedQuantity - 1, 0);
-        if (selectedQuantity === 0) {
+        if (selectedQuantity > 1) {
+          selectedQuantity = selectedQuantity - 1;
+          renderTickets();
+        } else {
+          // When quantity reaches 1, deselect the ticket
           selectedTicket = null;
+          selectedQuantity = 0;
+          renderTickets();
         }
-        renderTickets();
       }
     }
 
