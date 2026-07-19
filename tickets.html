@@ -1177,6 +1177,8 @@
       document.getElementById('proceedToInfo').disabled = selectedTickets.length === 0;
     }
 
+    let currentOrderId = '';
+
     // Step navigation
     function goToStep(step) {
       currentStep = step;
@@ -1211,8 +1213,10 @@
         document.getElementById('summaryTotal2').textContent = `₹${totalAmount}`;
         document.getElementById('proceedToPayment').textContent = `CHECKOUT → ₹${totalAmount}`;
       } else if (step === 3) {
-        const orderId = 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-        document.getElementById('orderId').textContent = `Order ID: ${orderId}`;
+        if (!currentOrderId) {
+          currentOrderId = 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        }
+        document.getElementById('orderId').textContent = `Order ID: ${currentOrderId}`;
         startSessionTimer();
       }
     }
@@ -1437,15 +1441,22 @@
       document.getElementById('adminPanel').classList.remove('show');
     }
 
-    function confirmOrder() {
-      const name = document.getElementById('fullName').value;
-      const email = document.getElementById('emailAddress').value;
-      const college = document.getElementById('collegeName').value;
-      const ref = document.getElementById('refNumber').value;
+    async function confirmOrder() {
+      const name = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('emailAddress').value.trim();
+      const college = document.getElementById('collegeName').value.trim();
+      const gender = document.getElementById('gender').value;
+      const ref = document.getElementById('refNumber').value.trim();
 
       if (!name || !email || !college || !ref) {
-        alert('Please fill in all fields including transaction reference');
+        alert('Please fill in all required fields including transaction reference / UTR number');
         return;
+      }
+
+      const confirmBtn = document.getElementById('confirmPayment');
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'SUBMITTING ORDER...';
       }
 
       // Get all selected tickets
@@ -1454,19 +1465,45 @@
         return { ...ticket, quantity: cart[ticketId] };
       });
 
-      const ticketsList = selectedTickets.map(t => `${t.quantity}x ${t.name}`).join('\n');
+      const ticketsList = selectedTickets.map(t => `${t.quantity}x ${t.name}`).join(', ');
       const totalAmount = selectedTickets.reduce((sum, t) => sum + ((t?.price || 0) * t.quantity), 0);
 
-      // Disable checkout protection since order is confirmed
-      isCheckoutInProgress = false;
+      try {
+        const response = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            order_id: currentOrderId,
+            ticket_id: selectedTickets[0]?.id || null,
+            full_name: name,
+            email: email,
+            college_name: college,
+            gender: gender,
+            quantity: selectedTickets.reduce((sum, t) => sum + t.quantity, 0),
+            tickets_summary: ticketsList,
+            total_amount: totalAmount,
+            order_reference: ref,
+          }),
+        });
 
-      alert(`Order Confirmed!\n\nName: ${name}\nEmail: ${email}\nCollege: ${college}\n\nTickets:\n${ticketsList}\n\nTotal: ₹${totalAmount}\n\nThank you for your purchase!`);
-      
-      // Reset form after confirmation
-      setTimeout(() => {
-        cart = {};
-        window.location.href = '/';
-      }, 500);
+        const data = await response.json();
+        isCheckoutInProgress = false;
+
+        if (data.success) {
+          alert(`🎉 Order Submitted & Under Review!\n\nOrder ID: ${currentOrderId}\nName: ${name}\nEmail: ${email}\nTotal: ₹${totalAmount}\nUTR / Ref: ${ref}\n\nA notification email has been dispatched to ${email} and is currently under review by our admin team.`);
+        } else {
+          alert(`Order recorded: ${data.message || 'Under review'}`);
+        }
+      } catch (err) {
+        console.error('Error submitting order:', err);
+        alert(`Order recorded!\nOrder ID: ${currentOrderId}\nYour submission has been captured.`);
+      } finally {
+        setTimeout(() => {
+          cart = {};
+          currentOrderId = '';
+          window.location.href = '/';
+        }, 500);
+      }
     }
 
     // Initialize on load

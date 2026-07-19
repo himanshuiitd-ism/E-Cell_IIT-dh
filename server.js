@@ -2,8 +2,9 @@ require("dotenv").config();
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
-const pool = require("./db");
+const { pool, query } = require("./db");
 const cloudinary = require("cloudinary").v2;
+const nodemailer = require("nodemailer");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,10 +22,10 @@ const initDb = async () => {
     const sqlPath = path.join(__dirname, "db", "init.sql");
     if (fs.existsSync(sqlPath)) {
       const sqlContent = fs.readFileSync(sqlPath, "utf8");
-      await pool.query(sqlContent);
+      await query(sqlContent);
 
       // Perform database schema migrations if necessary (add page_path column dynamically)
-      await pool.query(`
+      await query(`
         DO $$
         BEGIN
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='site_content' AND column_name='page_path') THEN
@@ -37,7 +38,7 @@ const initDb = async () => {
       `);
 
       // Migration for social media columns
-      await pool.query(`
+      await query(`
         DO $$
         BEGIN
           IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='instagram') THEN
@@ -59,7 +60,7 @@ const initDb = async () => {
       `);
 
       // Keep database HTML content synchronized with disk for the new features
-      const resHome = await pool.query(
+      const resHome = await query(
         "SELECT html FROM site_content WHERE page_path = '/'",
       );
       if (resHome.rows.length > 0) {
@@ -79,7 +80,7 @@ const initDb = async () => {
             path.join(__dirname, "index.html"),
             "utf8",
           );
-          await pool.query(
+          await query(
             "INSERT INTO site_content (page_path, html) VALUES ('/', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
             [freshHtml],
           );
@@ -92,13 +93,13 @@ const initDb = async () => {
           path.join(__dirname, "index.html"),
           "utf8",
         );
-        await pool.query(
+        await query(
           "INSERT INTO site_content (page_path, html) VALUES ('/', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
           [freshHtml],
         );
       }
 
-      const resMembers = await pool.query(
+      const resMembers = await query(
         "SELECT html FROM site_content WHERE page_path = '/members.html'",
       );
       if (
@@ -115,7 +116,7 @@ const initDb = async () => {
           path.join(__dirname, "members.html"),
           "utf8",
         );
-        await pool.query(
+        await query(
           "INSERT INTO site_content (page_path, html) VALUES ('/members.html', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
           [freshHtml],
         );
@@ -196,11 +197,11 @@ app.post("/api/admin/reset-layout", async (req, res) => {
     const freshIndex = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
     const freshMembers = fs.readFileSync(path.join(__dirname, "members.html"), "utf8");
 
-    await pool.query(
+    await query(
       "INSERT INTO site_content (page_path, html) VALUES ('/', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
       [freshIndex]
     );
-    await pool.query(
+    await query(
       "INSERT INTO site_content (page_path, html) VALUES ('/members.html', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
       [freshMembers]
     );
@@ -430,7 +431,7 @@ app.post("/api/save", async (req, res) => {
 // Fetch all members endpoint
 app.get("/api/members", async (req, res) => {
   try {
-    const result = await pool.query(
+    const result = await query(
       "SELECT name, role, image_url, section, display_order, instagram, facebook, twitter, linkedin, reddit FROM members ORDER BY display_order ASC",
     );
     return res.json({ success: true, members: result.rows });
@@ -445,7 +446,7 @@ app.get("/api/members", async (req, res) => {
 // Serve index.html from DB or fallback to file system
 const serveIndex = async (req, res) => {
   try {
-    const result = await pool.query(
+    const result = await query(
       "SELECT html FROM site_content WHERE page_path = '/'",
     );
     if (result.rows.length > 0) {
@@ -463,7 +464,7 @@ const serveIndex = async (req, res) => {
 // Serve members.html from DB or fallback to file system
 const serveMembersPage = async (req, res) => {
   try {
-    const result = await pool.query(
+    const result = await query(
       "SELECT html FROM site_content WHERE page_path = '/members.html'",
     );
     if (result.rows.length > 0) {
@@ -488,7 +489,7 @@ app.get("/admin/members", serveMembersPage);
 // Ticket endpoints
 app.get("/api/tickets", async (req, res) => {
   try {
-    const result = await pool.query(
+    const result = await query(
       "SELECT * FROM tickets ORDER BY display_order ASC",
     );
     return res.json(result.rows);
@@ -510,7 +511,7 @@ app.post("/api/tickets", async (req, res) => {
   }
 
   try {
-    const result = await pool.query(
+    const result = await query(
       "INSERT INTO tickets (name, description, price, features, availability) VALUES ($1, $2, $3, $4, $5) RETURNING *",
       [name, description, price, features || [], availability || "available"],
     );
@@ -528,7 +529,7 @@ app.put("/api/tickets/:id", async (req, res) => {
   const { name, description, price, features, availability } = req.body;
 
   try {
-    const result = await pool.query(
+    const result = await query(
       "UPDATE tickets SET name = $1, description = $2, price = $3, features = $4, availability = $5, updated_at = NOW() WHERE id = $6 RETURNING *",
       [
         name,
@@ -559,7 +560,7 @@ app.delete("/api/tickets/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    const result = await pool.query(
+    const result = await query(
       "DELETE FROM tickets WHERE id = $1 RETURNING *",
       [id],
     );
@@ -582,7 +583,7 @@ app.delete("/api/tickets/:id", async (req, res) => {
 // QR Code endpoints
 app.get("/api/qr-code", async (req, res) => {
   try {
-    const result = await pool.query(
+    const result = await query(
       "SELECT html FROM site_content WHERE page_path = 'qr_code_url'",
     );
     if (result.rows.length > 0) {
@@ -609,7 +610,7 @@ app.post("/api/qr-code", async (req, res) => {
   }
 
   try {
-    await pool.query(
+    await query(
       "INSERT INTO site_content (page_path, html) VALUES ('qr_code_url', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
       [url],
     );
@@ -629,52 +630,208 @@ app.post("/api/qr-code", async (req, res) => {
   }
 });
 
+// Helper to create Nodemailer Transporter
+function createEmailTransporter() {
+  const host = process.env.SMTP_HOST || "smtp.gmail.com";
+  const port = parseInt(process.env.SMTP_PORT || "587");
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+
+  if (!user || !pass || user.includes("your_gmail") || pass.includes("your_gmail")) {
+    console.warn("[Nodemailer] SMTP credentials missing or placeholder in .env. Skipping actual email dispatch.");
+    return null;
+  }
+
+  return nodemailer.createTransport({
+    host: host,
+    port: port,
+    secure: port === 465,
+    auth: {
+      user: user,
+      pass: pass,
+    },
+  });
+}
+
+// Helper to send order notification emails (Admin notification + Payer confirmation)
+async function sendOrderNotificationEmails(orderData) {
+  const transporter = createEmailTransporter();
+  const adminEmail = process.env.ADMIN_EMAIL || "outreach.iic@iitdh.ac.in";
+  const senderEmail = process.env.SMTP_USER || "noreply@iitdh.ac.in";
+
+  const {
+    order_id,
+    full_name,
+    email,
+    college_name,
+    gender,
+    tickets_summary,
+    total_amount,
+    order_reference,
+  } = orderData;
+
+  // 1. Admin Email Notification Template
+  const adminMailOptions = {
+    from: `"E-Summit 2026 Systems" <${senderEmail}>`,
+    to: adminEmail,
+    subject: `🚨 New Ticket Submission [${order_id}] - ${full_name}`,
+    html: `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 650px; margin: 0 auto; border: 1px solid #ff7600;">
+        <h2 style="color: #ff7600; border-bottom: 2px solid #ff7600; padding-bottom: 10px; margin-top: 0;">New Ticket Order Received (Review Required)</h2>
+        <p style="font-size: 15px; color: #d1d1d1;">A new ticket purchase and payment reference has been submitted. Details below:</p>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px; background: rgba(255, 255, 255, 0.04); border-radius: 8px; overflow: hidden;">
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);"><td style="padding: 12px; color: #ff7600; font-weight: bold; width: 35%;">Order ID:</td><td style="padding: 12px; color: #fff; font-weight: bold;">${order_id}</td></tr>
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);"><td style="padding: 12px; color: #ff7600; font-weight: bold;">Payer Full Name:</td><td style="padding: 12px; color: #fff;">${full_name}</td></tr>
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);"><td style="padding: 12px; color: #ff7600; font-weight: bold;">Payer Email:</td><td style="padding: 12px; color: #fff;"><a href="mailto:${email}" style="color: #ff7600;">${email}</a></td></tr>
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);"><td style="padding: 12px; color: #ff7600; font-weight: bold;">College / Institution:</td><td style="padding: 12px; color: #fff;">${college_name}</td></tr>
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);"><td style="padding: 12px; color: #ff7600; font-weight: bold;">Gender:</td><td style="padding: 12px; color: #fff;">${gender || "Not specified"}</td></tr>
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);"><td style="padding: 12px; color: #ff7600; font-weight: bold;">Tickets Purchased:</td><td style="padding: 12px; color: #fff;">${tickets_summary || "E-Summit Pass"}</td></tr>
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);"><td style="padding: 12px; color: #ff7600; font-weight: bold;">Total Amount Paid:</td><td style="padding: 12px; color: #ff7600; font-size: 18px; font-weight: bold;">₹${total_amount}</td></tr>
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);"><td style="padding: 12px; color: #ff7600; font-weight: bold;">Transaction Ref / UTR:</td><td style="padding: 12px; color: #28a745; font-weight: bold;">${order_reference}</td></tr>
+          <tr><td style="padding: 12px; color: #ff7600; font-weight: bold;">Status:</td><td style="padding: 12px; color: #ffc107; font-weight: bold;">Pending Admin Review</td></tr>
+        </table>
+
+        <div style="margin-top: 25px; padding: 15px; background: rgba(255, 118, 0, 0.1); border-left: 4px solid #ff7600; border-radius: 4px;">
+          <p style="margin: 0; font-size: 14px; color: #e0e0e0;">Please verify the UTR payment reference in the bank account records and issue final confirmation to the attendee.</p>
+        </div>
+        <p style="font-size: 12px; color: #888; text-align: center; margin-top: 25px;">E-Summit 2026 | Institute Innovation Council (IIC) IIT ISM Dhanbad</p>
+      </div>
+    `,
+  };
+
+  // 2. Payer Acknowledgment Email Template
+  const payerMailOptions = {
+    from: `"E-Summit 2026 IIT ISM Dhanbad" <${senderEmail}>`,
+    to: email,
+    subject: `Payment Received - Under Review [${order_id}] | E-Summit 2026`,
+    html: `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0d0d12; color: #ffffff; padding: 30px; border-radius: 12px; max-width: 650px; margin: 0 auto; border: 1px solid #ff7600;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h1 style="color: #ff7600; margin: 0; font-size: 26px;">E-SUMMIT 2026</h1>
+          <p style="color: #aaa; margin: 5px 0 0 0; font-size: 14px;">IIT ISM Dhanbad</p>
+        </div>
+
+        <div style="background: rgba(255, 255, 255, 0.03); padding: 20px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.08);">
+          <h2 style="color: #ffffff; font-size: 20px; margin-top: 0;">Hello ${full_name},</h2>
+          <p style="font-size: 15px; color: #d1d1d1; line-height: 1.6;">
+            We have successfully received your payment submission for <strong>E-Summit 2026</strong>. Your transaction is currently <strong>under review</strong> by our finance and admin team.
+          </p>
+
+          <div style="background: rgba(255, 118, 0, 0.1); border-left: 4px solid #ff7600; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0; color: #ff7600; font-weight: bold; font-size: 16px;">Order ID: ${order_id}</p>
+            <p style="margin: 5px 0 0 0; color: #ddd; font-size: 14px;">Status: <span style="color: #ffc107; font-weight: bold;">Payment Under Review</span></p>
+          </div>
+
+          <h3 style="color: #ff7600; font-size: 16px; margin-top: 20px;">Order Summary:</h3>
+          <table style="width: 100%; border-collapse: collapse; color: #eee; font-size: 14px;">
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);"><td style="padding: 8px 0; color: #aaa;">Tickets:</td><td style="padding: 8px 0; text-align: right; font-weight: bold;">${tickets_summary || "E-Summit Pass"}</td></tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);"><td style="padding: 8px 0; color: #aaa;">Amount Paid:</td><td style="padding: 8px 0; text-align: right; color: #ff7600; font-weight: bold;">₹${total_amount}</td></tr>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);"><td style="padding: 8px 0; color: #aaa;">Transaction UTR / Ref:</td><td style="padding: 8px 0; text-align: right; font-family: monospace;">${order_reference}</td></tr>
+            <tr><td style="padding: 8px 0; color: #aaa;">Institution:</td><td style="padding: 8px 0; text-align: right;">${college_name}</td></tr>
+          </table>
+
+          <p style="font-size: 14px; color: #d1d1d1; line-height: 1.6; margin-top: 25px;">
+            Our admin team is verifying your payment reference number. Once verified, you will receive a final confirmation email with your pass details.
+          </p>
+        </div>
+
+        <div style="margin-top: 30px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+          <p style="font-size: 13px; color: #888; margin: 0;">Have questions? Contact us at <a href="mailto:outreach.iic@iitdh.ac.in" style="color: #ff7600;">outreach.iic@iitdh.ac.in</a></p>
+          <p style="font-size: 12px; color: #666; margin-top: 8px;">&copy; 2026 Institute Innovation Council, IIT ISM Dhanbad. All rights reserved.</p>
+        </div>
+      </div>
+    `,
+  };
+
+  if (!transporter) {
+    console.log(`[Email Notice] SMTP credentials unconfigured/placeholder. Order [${order_id}] recorded. Simulated notification sent to Admin (${adminEmail}) & Payer (${email}).`);
+    return false;
+  }
+
+  try {
+    const adminRes = await transporter.sendMail(adminMailOptions);
+    console.log(`[Nodemailer] Admin notification sent to ${adminEmail}: ${adminRes.messageId}`);
+
+    const payerRes = await transporter.sendMail(payerMailOptions);
+    console.log(`[Nodemailer] Payer confirmation sent to ${email}: ${payerRes.messageId}`);
+    return true;
+  } catch (err) {
+    console.error("[Nodemailer Error] Failed to send notification emails:", err);
+    return false;
+  }
+}
+
 // Orders endpoint
 app.post("/api/orders", async (req, res) => {
   const {
+    order_id,
     ticket_id,
     full_name,
     email,
     college_name,
     gender,
     quantity,
+    tickets_summary,
     total_amount,
     order_reference,
   } = req.body;
 
-  if (!ticket_id || !full_name || !email || !college_name) {
+  if (!full_name || !email || !college_name || !order_reference) {
     return res
       .status(400)
       .json({ success: false, message: "Missing required fields" });
   }
 
+  const generatedOrderId = order_id || 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+
   try {
-    const result = await pool.query(
+    const result = await query(
       "INSERT INTO orders (ticket_id, full_name, email, college_name, gender, quantity, total_amount, order_reference, payment_status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
       [
-        ticket_id,
+        ticket_id || null,
         full_name,
         email,
         college_name,
         gender || "Not specified",
         quantity || 1,
-        total_amount,
+        total_amount || 0,
         order_reference,
         "pending",
       ],
     );
-    return res.json({ success: true, order: result.rows[0] });
+
+    const savedOrder = result.rows[0];
+
+    // Dispatch Nodemailer notifications (Admin + Payer)
+    const emailSent = await sendOrderNotificationEmails({
+      order_id: generatedOrderId,
+      full_name,
+      email,
+      college_name,
+      gender,
+      tickets_summary: tickets_summary || `${quantity || 1}x E-Summit Ticket`,
+      total_amount,
+      order_reference,
+    });
+
+    return res.json({
+      success: true,
+      message: "Order created successfully and confirmation emails dispatched",
+      order: { ...savedOrder, order_id: generatedOrderId },
+      email_sent: emailSent,
+    });
   } catch (err) {
     console.error("Error creating order:", err);
     return res
       .status(500)
-      .json({ success: false, message: "Failed to create order" });
+      .json({ success: false, message: "Failed to create order: " + err.message });
   }
 });
 
 app.get("/api/orders", async (req, res) => {
   try {
-    const result = await pool.query(
+    const result = await query(
       "SELECT * FROM orders ORDER BY created_at DESC",
     );
     return res.json(result.rows);
