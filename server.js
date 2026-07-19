@@ -64,9 +64,16 @@ const initDb = async () => {
       );
       if (resHome.rows.length > 0) {
         const dbHtml = resHome.rows[0].html;
-        if (!dbHtml.includes("/members.html") || dbHtml.includes('id="team"')) {
+        if (
+          !dbHtml.includes("/tickets.html") ||
+          !dbHtml.includes("admin-go-tickets") ||
+          !dbHtml.includes("QUICK LINKS") ||
+          !dbHtml.includes("/members.html") ||
+          dbHtml.includes('id="team"') ||
+          dbHtml.includes('title="Double-click')
+        ) {
           console.log(
-            "Database HTML is outdated or contains removed team section. Overwriting with fresh index.html...",
+            "Database HTML is outdated (missing tickets/admin elements/updated footer). Overwriting with fresh index.html...",
           );
           const freshHtml = fs.readFileSync(
             path.join(__dirname, "index.html"),
@@ -94,9 +101,15 @@ const initDb = async () => {
       const resMembers = await pool.query(
         "SELECT html FROM site_content WHERE page_path = '/members.html'",
       );
-      if (resMembers.rows.length === 0) {
+      if (
+        resMembers.rows.length === 0 ||
+        !resMembers.rows[0].html.includes("/tickets.html") ||
+        !resMembers.rows[0].html.includes("admin-go-tickets") ||
+        !resMembers.rows[0].html.includes("QUICK LINKS") ||
+        resMembers.rows[0].html.includes('title="Double-click')
+      ) {
         console.log(
-          "Database missing members.html. Seeding with local members.html...",
+          "Database members.html is missing or outdated. Overwriting with fresh members.html...",
         );
         const freshHtml = fs.readFileSync(
           path.join(__dirname, "members.html"),
@@ -165,6 +178,42 @@ app.post("/api/login", (req, res) => {
     return res
       .status(401)
       .json({ success: false, message: "Invalid passcode" });
+  }
+});
+
+// Reset layout endpoint to force restore site HTML to disk version
+app.post("/api/admin/reset-layout", async (req, res) => {
+  const { passcode } = req.body;
+  const correctPasscode = process.env.ADMIN_PASSCODE;
+
+  if (passcode !== correctPasscode) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Invalid passcode" });
+  }
+
+  try {
+    const freshIndex = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
+    const freshMembers = fs.readFileSync(path.join(__dirname, "members.html"), "utf8");
+
+    await pool.query(
+      "INSERT INTO site_content (page_path, html) VALUES ('/', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
+      [freshIndex]
+    );
+    await pool.query(
+      "INSERT INTO site_content (page_path, html) VALUES ('/members.html', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
+      [freshMembers]
+    );
+
+    return res.json({
+      success: true,
+      message: "Site layout reset successfully to latest codebase version.",
+    });
+  } catch (err) {
+    console.error("Error resetting layout:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to reset layout: " + err.message });
   }
 });
 
