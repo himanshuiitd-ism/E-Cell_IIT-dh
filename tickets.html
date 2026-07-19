@@ -924,8 +924,111 @@
     // Initialize page
     async function init() {
       await loadTickets();
+      await loadQrCode();
       setupEventListeners();
+      setupQrCodeAdminUpload();
       renderTickets();
+    }
+
+    // Load QR Code URL from server or fallback
+    async function loadQrCode() {
+      try {
+        const res = await fetch('/api/qr-code');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.url) {
+            const qrImg = document.getElementById('qrCode');
+            if (qrImg) qrImg.src = data.url;
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load QR code URL from database:', err);
+      }
+    }
+
+    // Setup QR Code Upload to Cloudinary & Database in Admin Mode
+    function setupQrCodeAdminUpload() {
+      const qrContainer = document.querySelector('.qr-container');
+      const qrImg = document.getElementById('qrCode');
+      if (!qrContainer || !qrImg) return;
+
+      let overlay = qrContainer.querySelector('.admin-image-upload-overlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'admin-image-upload-overlay';
+        overlay.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; border-radius: 12px; cursor: pointer;';
+        overlay.innerHTML = `<button type="button" class="button button-primary" style="font-size: 0.85rem; padding: 0.5rem 1rem;"><i data-lucide="image"></i> Change QR Code</button>`;
+        
+        qrContainer.style.position = 'relative';
+        qrContainer.appendChild(overlay);
+
+        qrContainer.addEventListener('mouseenter', () => {
+          if (document.body.classList.contains('admin-mode') || sessionStorage.getItem('admin_authenticated') === 'true') {
+            overlay.style.opacity = '1';
+          }
+        });
+        qrContainer.addEventListener('mouseleave', () => {
+          overlay.style.opacity = '0';
+        });
+
+        overlay.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const fileInput = document.createElement('input');
+          fileInput.type = 'file';
+          fileInput.accept = 'image/*';
+          fileInput.style.display = 'none';
+
+          fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async () => {
+              const base64Data = reader.result;
+              qrImg.src = base64Data; // Temporary preview
+
+              try {
+                // Upload directly to Cloudinary via server endpoint
+                const uploadRes = await fetch('/api/upload-image', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ name: 'qr_code', base64Data })
+                });
+
+                const uploadData = await uploadRes.json();
+                if (uploadData.success && uploadData.url) {
+                  const cloudinaryUrl = uploadData.url;
+                  qrImg.src = cloudinaryUrl;
+
+                  // Save Cloudinary URL to database
+                  const saveQrRes = await fetch('/api/qr-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: cloudinaryUrl })
+                  });
+
+                  const saveQrData = await saveQrRes.json();
+                  if (saveQrData.success) {
+                    alert('New QR code uploaded to Cloudinary & saved to database successfully!');
+                  } else {
+                    alert('Uploaded to Cloudinary, but failed to save to database: ' + saveQrData.message);
+                  }
+                } else {
+                  alert('Failed to upload QR code to Cloudinary: ' + uploadData.message);
+                }
+              } catch (err) {
+                console.error('QR upload error:', err);
+                alert('Failed to upload QR code to Cloudinary.');
+              }
+            };
+            reader.readAsDataURL(file);
+          });
+
+          document.body.appendChild(fileInput);
+          fileInput.click();
+          fileInput.remove();
+        });
+      }
     }
 
     // Load tickets from server
@@ -987,7 +1090,7 @@
           <div class="ticket-price">₹${ticket.price}</div>
           <div class="ticket-price-label">+ TICKET</div>
           <ul class="ticket-features">
-            ${ticket.features.map(f => `<li>${f}</li>`).join('')}
+            ${(ticket.features || []).map(f => `<li>${f}</li>`).join('')}
           </ul>
           <div class="quantity-selector">
             <span class="quantity-label">QTY</span>
@@ -1060,7 +1163,7 @@
         return { ...ticket, quantity: cart[ticketId] };
       });
 
-      const total = selectedTickets.reduce((sum, t) => sum + (t.price * t.quantity), 0);
+      const total = selectedTickets.reduce((sum, t) => sum + ((t?.price || 0) * t.quantity), 0);
       const totalItems = selectedTickets.reduce((sum, t) => sum + t.quantity, 0);
 
       // Format selected tickets for display
@@ -1101,7 +1204,7 @@
         });
         
         const ticketsList = selectedTickets.map(t => `${t.quantity}x ${t.name}`).join(', ');
-        const totalAmount = selectedTickets.reduce((sum, t) => sum + (t.price * t.quantity), 0);
+        const totalAmount = selectedTickets.reduce((sum, t) => sum + ((t?.price || 0) * t.quantity), 0);
         
         document.getElementById('summaryTicket2').textContent = ticketsList;
         document.getElementById('summaryQuantity2').textContent = selectedTickets.reduce((sum, t) => sum + t.quantity, 0);
@@ -1219,52 +1322,118 @@
       const content = document.getElementById('adminContent');
       content.innerHTML = '';
 
+      // Add new ticket button
+      const addBtn = document.createElement('button');
+      addBtn.className = 'button button-primary';
+      addBtn.style.cssText = 'width: 100%; margin-bottom: 1.5rem; font-size: 0.85rem; padding: 0.6rem; font-weight: 700;';
+      addBtn.innerHTML = '+ ADD NEW TICKET';
+      addBtn.addEventListener('click', () => {
+        tickets.push({
+          id: null,
+          name: 'New Ticket Pass',
+          description: 'Access and details for this pass',
+          price: 500,
+          features: ['Event entry', 'Certificate']
+        });
+        renderAdminPanel();
+        renderTickets();
+      });
+      content.appendChild(addBtn);
+
       tickets.forEach((ticket, idx) => {
         const section = document.createElement('div');
         section.className = 'admin-section';
         section.innerHTML = `
-          <div style="margin-bottom: 1rem;">
-            <h4 style="margin: 0 0 0.5rem 0; color: var(--accent); font-size: 0.95rem;">Ticket ${idx + 1}</h4>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <h4 style="margin: 0; color: var(--accent); font-size: 0.95rem;">Ticket ${idx + 1}</h4>
+            <button type="button" class="delete-ticket-btn" style="background: rgba(220, 53, 69, 0.2); border: 1px solid #dc3545; color: #ff6b6b; padding: 0.25rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.78rem; font-weight: 600;">Remove</button>
           </div>
           <label class="admin-label">Name</label>
-          <input type="text" class="admin-input" value="${ticket.name}" data-field="name" data-ticket="${idx}" />
+          <input type="text" class="admin-input" value="${ticket.name || ''}" data-field="name" data-ticket="${idx}" />
           
           <label class="admin-label">Description</label>
-          <input type="text" class="admin-input" value="${ticket.description}" data-field="description" data-ticket="${idx}" />
+          <input type="text" class="admin-input" value="${ticket.description || ''}" data-field="description" data-ticket="${idx}" />
           
           <label class="admin-label">Price (₹)</label>
-          <input type="number" class="admin-input" value="${ticket.price}" data-field="price" data-ticket="${idx}" />
+          <input type="number" class="admin-input" value="${ticket.price || 0}" data-field="price" data-ticket="${idx}" />
           
           <label class="admin-label">Features (comma-separated)</label>
-          <textarea class="admin-input" style="resize: vertical; min-height: 60px;" data-field="features" data-ticket="${idx}">${ticket.features.join(', ')}</textarea>
+          <textarea class="admin-input" style="resize: vertical; min-height: 60px;" data-field="features" data-ticket="${idx}">${(ticket.features || []).join(', ')}</textarea>
         `;
+
+        const delBtn = section.querySelector('.delete-ticket-btn');
+        delBtn.addEventListener('click', async () => {
+          if (confirm(`Are you sure you want to delete "${ticket.name}"?`)) {
+            if (ticket.id) {
+              try {
+                await fetch(`/api/tickets/${ticket.id}`, { method: 'DELETE' });
+              } catch (err) {
+                console.error('Error deleting ticket from server:', err);
+              }
+            }
+            tickets.splice(idx, 1);
+            if (cart[ticket.id]) delete cart[ticket.id];
+            renderAdminPanel();
+            renderTickets();
+          }
+        });
+
         content.appendChild(section);
       });
 
       const saveBtn = document.createElement('button');
       saveBtn.className = 'admin-save-btn';
-      saveBtn.textContent = 'SAVE CHANGES';
+      saveBtn.textContent = 'SAVE ALL TICKET CHANGES';
       saveBtn.addEventListener('click', saveTicketChanges);
       content.appendChild(saveBtn);
     }
 
-    function saveTicketChanges() {
+    async function saveTicketChanges() {
       document.querySelectorAll('.admin-input').forEach(input => {
         const ticketIdx = parseInt(input.dataset.ticket);
         const field = input.dataset.field;
         const value = input.value;
 
-        if (field === 'features') {
-          tickets[ticketIdx][field] = value.split(',').map(f => f.trim());
-        } else if (field === 'price') {
-          tickets[ticketIdx][field] = parseInt(value);
-        } else {
-          tickets[ticketIdx][field] = value;
+        if (tickets[ticketIdx]) {
+          if (field === 'features') {
+            tickets[ticketIdx][field] = value.split(',').map(f => f.trim()).filter(Boolean);
+          } else if (field === 'price') {
+            tickets[ticketIdx][field] = parseInt(value) || 0;
+          } else {
+            tickets[ticketIdx][field] = value;
+          }
         }
       });
 
+      // Save to database
+      for (let i = 0; i < tickets.length; i++) {
+        const t = tickets[i];
+        try {
+          if (t.id) {
+            await fetch(`/api/tickets/${t.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(t)
+            });
+          } else {
+            const res = await fetch('/api/tickets', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(t)
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (data.ticket) tickets[i] = data.ticket;
+            }
+          }
+        } catch (err) {
+          console.error('Error saving ticket to database:', err);
+        }
+      }
+
+      await loadTickets();
       renderTickets();
-      alert('Tickets updated! Changes are saved locally.');
+      alert('Tickets updated and saved successfully to database!');
       document.getElementById('adminPanel').classList.remove('show');
     }
 
@@ -1286,7 +1455,7 @@
       });
 
       const ticketsList = selectedTickets.map(t => `${t.quantity}x ${t.name}`).join('\n');
-      const totalAmount = selectedTickets.reduce((sum, t) => sum + (t.price * t.quantity), 0);
+      const totalAmount = selectedTickets.reduce((sum, t) => sum + ((t?.price || 0) * t.quantity), 0);
 
       // Disable checkout protection since order is confirmed
       isCheckoutInProgress = false;

@@ -2050,3 +2050,96 @@ body.admin-mode
   box-shadow: 0 0 18px rgba(255, 118, 0, 0.45);
   transform: translateY(-1px);
 }
+
+/* Social media double-click highlight editor popover */
+.admin-social-popover-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(5px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.admin-social-popover-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.admin-social-popover-card {
+  background: #121217;
+  border: 1px solid var(--accent);
+  box-shadow: 0 0 35px rgba(255, 118, 0, 0.35);
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 480px;
+  transform: scale(0.95);
+  transition: transform 0.25s ease;
+}
+
+.admin-social-popover-overlay.active .admin-social-popover-card {
+  transform: scale(1);
+}
+
+.admin-social-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.admin-social-popover-title {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-social-popover-close {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.admin-social-popover-close:hover {
+  color: #fff;
+}
+
+.admin-social-popover-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #000000;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  margin-bottom: 1.25rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.admin-social-popover-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 12px rgba(255, 118, 0, 0.3);
+}
+
+.admin-social-popover-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+

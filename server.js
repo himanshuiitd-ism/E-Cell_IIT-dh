@@ -579,6 +579,56 @@ app.delete("/api/tickets/:id", async (req, res) => {
   }
 });
 
+// QR Code endpoints
+app.get("/api/qr-code", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT html FROM site_content WHERE page_path = 'qr_code_url'",
+    );
+    if (result.rows.length > 0) {
+      return res.json({ success: true, url: result.rows[0].html });
+    }
+    return res.json({
+      success: true,
+      url: "https://via.placeholder.com/250x250/111111/ff7600?text=Scan+%26+Pay+UPI+QR",
+    });
+  } catch (err) {
+    console.error("Error fetching QR code:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch QR code URL" });
+  }
+});
+
+app.post("/api/qr-code", async (req, res) => {
+  const { url } = req.body;
+  if (!url) {
+    return res
+      .status(400)
+      .json({ success: false, message: "QR Code URL is required" });
+  }
+
+  try {
+    await pool.query(
+      "INSERT INTO site_content (page_path, html) VALUES ('qr_code_url', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
+      [url],
+    );
+    return res.json({
+      success: true,
+      message: "QR Code URL saved successfully",
+      url,
+    });
+  } catch (err) {
+    console.error("Error saving QR code URL:", err);
+    return res
+      .status(500)
+      .json({
+        success: false,
+        message: "Failed to save QR code URL: " + err.message,
+      });
+  }
+});
+
 // Orders endpoint
 app.post("/api/orders", async (req, res) => {
   const {

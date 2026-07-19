@@ -566,6 +566,9 @@ function enterAdminMode() {
   // Inject social media editors
   setupSocialEditors();
 
+  // Attach social media double-click highlight popover editor
+  setupSocialDoubleClickEditor();
+
   // Change cursor style in admin mode to default since it's hard to edit text with custom pointer
   document.body.style.cursor = "default";
   const customDot = document.querySelector(".cursor-dot");
@@ -1338,3 +1341,130 @@ function sanitizeAllLinks() {
     }
   });
 }
+
+/* --- SOCIAL MEDIA DOUBLE-CLICK HIGHLIGHT EDITOR --- */
+let currentTargetSocialLink = null;
+
+function setupSocialDoubleClickEditor() {
+  createSocialPopover();
+
+  const socialLinks = document.querySelectorAll(
+    ".social-icon, .social-links a, .member-socials a",
+  );
+
+  socialLinks.forEach((link) => {
+    link.removeAttribute("contenteditable");
+
+    link.removeEventListener("click", handleSocialLinkClick);
+    link.addEventListener("click", handleSocialLinkClick);
+
+    link.removeEventListener("dblclick", handleSocialLinkDblClick);
+    link.addEventListener("dblclick", handleSocialLinkDblClick);
+
+    if (document.body.classList.contains("admin-mode")) {
+      link.setAttribute(
+        "title",
+        "Double-click to edit social media link in highlight popup.",
+      );
+    }
+  });
+}
+
+function handleSocialLinkClick(e) {
+  if (document.body.classList.contains("admin-mode")) {
+    e.preventDefault();
+  }
+}
+
+function handleSocialLinkDblClick(e) {
+  if (!document.body.classList.contains("admin-mode")) return;
+  e.preventDefault();
+  e.stopPropagation();
+
+  const link = e.currentTarget;
+  currentTargetSocialLink = link;
+
+  const currentHref = link.getAttribute("href") || "";
+  const popover = document.getElementById("admin-social-popover");
+  const urlInput = document.getElementById("popoverUrlInput");
+  const titleEl = popover?.querySelector(".admin-social-popover-title");
+
+  let platformName = "Social Media";
+  const cls = (link.className || "").toLowerCase();
+  const ttl = (link.title || "").toLowerCase();
+
+  if (cls.includes("instagram") || ttl.includes("instagram")) platformName = "Instagram";
+  else if (cls.includes("facebook") || ttl.includes("facebook")) platformName = "Facebook";
+  else if (cls.includes("twitter") || ttl.includes("twitter")) platformName = "X / Twitter";
+  else if (cls.includes("linkedin") || ttl.includes("linkedin")) platformName = "LinkedIn";
+  else if (cls.includes("reddit") || ttl.includes("reddit")) platformName = "Reddit";
+
+  if (titleEl) {
+    titleEl.innerHTML = `<i data-lucide="share-2"></i> Edit ${platformName} Link`;
+    if (typeof lucide !== "undefined") lucide.createIcons();
+  }
+
+  if (urlInput) urlInput.value = currentHref;
+  popover?.classList.add("active");
+  setTimeout(() => urlInput?.focus(), 100);
+}
+
+function createSocialPopover() {
+  if (document.getElementById("admin-social-popover")) return;
+  const overlay = document.createElement("div");
+  overlay.id = "admin-social-popover";
+  overlay.className = "admin-social-popover-overlay";
+  overlay.innerHTML = `
+    <div class="admin-social-popover-card">
+      <div class="admin-social-popover-header">
+        <span class="admin-social-popover-title"><i data-lucide="share-2"></i> Edit Social Link</span>
+        <button type="button" class="admin-social-popover-close" id="popoverCloseBtn">&times;</button>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 0.75rem;">Edit destination URL for this handle:</p>
+      <input type="url" id="popoverUrlInput" class="admin-social-popover-input" placeholder="https://..." />
+      <div class="admin-social-popover-actions">
+        <button type="button" id="popoverCancelBtn" class="button button-secondary">Cancel</button>
+        <button type="button" id="popoverSaveBtn" class="button button-primary">Save Link</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const closeBtn = overlay.querySelector("#popoverCloseBtn");
+  const cancelBtn = overlay.querySelector("#popoverCancelBtn");
+  const saveBtn = overlay.querySelector("#popoverSaveBtn");
+  const input = overlay.querySelector("#popoverUrlInput");
+
+  closeBtn?.addEventListener("click", () => overlay.classList.remove("active"));
+  cancelBtn?.addEventListener("click", () => overlay.classList.remove("active"));
+
+  saveBtn?.addEventListener("click", () => {
+    if (!currentTargetSocialLink) return;
+
+    const rawUrl = input.value.trim();
+    const formattedUrl = rawUrl ? formatAbsoluteUrl(rawUrl) : "#";
+    currentTargetSocialLink.setAttribute("href", formattedUrl);
+
+    const memberCard = currentTargetSocialLink.closest(".member-card");
+    if (memberCard) {
+      let platform = "instagram";
+      const cls = currentTargetSocialLink.className.toLowerCase();
+      if (cls.includes("facebook")) platform = "facebook";
+      else if (cls.includes("twitter")) platform = "twitter";
+      else if (cls.includes("linkedin")) platform = "linkedin";
+      else if (cls.includes("reddit")) platform = "reddit";
+
+      memberCard.setAttribute(`data-${platform}`, formattedUrl);
+    }
+
+    overlay.classList.remove("active");
+    alert("Social media handle link updated! Click Save Changes on the top bar to persist.");
+  });
+
+  input?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      saveBtn?.click();
+    }
+  });
+}
+
