@@ -844,6 +844,63 @@
     </div>
   </footer>
 
+  <!-- Admin Passcode Modal -->
+  <div id="admin-passcode-modal" class="admin-modal-overlay">
+    <div class="admin-modal">
+      <h3>Admin Authentication</h3>
+      <p>Please enter the passcode to access Admin Mode</p>
+      <form id="admin-login-form">
+        <input type="password" id="admin-passcode" placeholder="Enter Passcode" required="">
+        <div class="admin-modal-actions">
+          <button type="button" id="admin-modal-cancel" class="button button-secondary">Cancel</button>
+          <button type="submit" class="button button-primary">Authenticate</button>
+        </div>
+      </form>
+      <p id="admin-login-error" class="admin-error-text"></p>
+    </div>
+  </div>
+
+  <!-- Floating Admin Control Bar -->
+  <div id="admin-control-bar" class="admin-bar">
+    <div class="admin-bar-inner">
+      <span class="admin-status"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="shield" aria-hidden="true" class="lucide lucide-shield"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg> Admin Mode Active</span>
+      <div class="admin-actions">
+        <button id="admin-edit-footer" class="button button-secondary button-pill"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="settings" aria-hidden="true" class="lucide lucide-settings"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m6.08 0l4.24-4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m6.08 0l4.24 4.24"></path></svg> Edit Footer</button>
+        <button id="admin-save" class="button button-primary"><i data-lucide="save"></i> Save Changes</button>
+        <button id="admin-exit" class="button button-secondary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="log-out" aria-hidden="true" class="lucide lucide-log-out"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg> Exit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Footer Editor Modal -->
+  <div id="admin-footer-modal" class="admin-modal-overlay">
+    <div class="admin-modal">
+      <h3>Edit Social Media Links</h3>
+      <form id="admin-footer-form">
+        <div class="admin-form-group">
+          <label for="admin-instagram">Instagram URL:</label>
+          <input type="url" id="admin-instagram" placeholder="https://www.instagram.com/..." required="">
+        </div>
+        <div class="admin-form-group">
+          <label for="admin-twitter">Twitter URL:</label>
+          <input type="url" id="admin-twitter" placeholder="https://www.twitter.com/..." required="">
+        </div>
+        <div class="admin-form-group">
+          <label for="admin-linkedin">LinkedIn URL:</label>
+          <input type="url" id="admin-linkedin" placeholder="https://www.linkedin.com/..." required="">
+        </div>
+        <div class="admin-form-group">
+          <label for="admin-facebook">Facebook URL:</label>
+          <input type="url" id="admin-facebook" placeholder="https://www.facebook.com/..." required="">
+        </div>
+        <div class="admin-modal-actions">
+          <button type="button" id="admin-footer-cancel" class="button button-secondary">Cancel</button>
+          <button type="submit" class="button button-primary">Save Links</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Admin Edit Button -->
   <button class="admin-edit-btn" id="adminEditBtn" title="Edit Tickets (Admin)">
     <i class="fas fa-edit"></i>

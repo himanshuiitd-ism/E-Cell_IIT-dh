@@ -162,9 +162,40 @@
       <div class="admin-actions">
         <button id="admin-add-event" class="button button-secondary button-pill"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="plus-circle" aria-hidden="true" class="lucide lucide-plus-circle"><circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path><path d="M12 8v8"></path></svg> Add Event</button>
         <button id="admin-add-member" class="button button-secondary button-pill"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="user-plus" aria-hidden="true" class="lucide lucide-user-plus"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" x2="19" y1="8" y2="14"></line><line x1="22" x2="16" y1="11" y2="11"></line></svg> Add Member</button>
+        <button id="admin-edit-footer" class="button button-secondary button-pill"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="settings" aria-hidden="true" class="lucide lucide-settings"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m6.08 0l4.24-4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m6.08 0l4.24 4.24"></path></svg> Edit Footer</button>
+        <button id="admin-go-tickets" class="button button-secondary button-pill"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="ticket" aria-hidden="true" class="lucide lucide-ticket"><path d="M2 9a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V9Z"></path><path d="M13 5v14"></path></svg> Manage Tickets</button>
         <button id="admin-save" class="button button-primary"><i data-lucide="save"></i> Save Changes</button>
         <button id="admin-exit" class="button button-secondary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="log-out" aria-hidden="true" class="lucide lucide-log-out"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg> Exit</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Admin Footer Editor Modal -->
+  <div id="admin-footer-modal" class="admin-modal-overlay">
+    <div class="admin-modal">
+      <h3>Edit Social Media Links</h3>
+      <form id="admin-footer-form">
+        <div class="admin-form-group">
+          <label for="admin-instagram">Instagram URL:</label>
+          <input type="url" id="admin-instagram" placeholder="https://www.instagram.com/..." required="">
+        </div>
+        <div class="admin-form-group">
+          <label for="admin-twitter">Twitter URL:</label>
+          <input type="url" id="admin-twitter" placeholder="https://www.twitter.com/..." required="">
+        </div>
+        <div class="admin-form-group">
+          <label for="admin-linkedin">LinkedIn URL:</label>
+          <input type="url" id="admin-linkedin" placeholder="https://www.linkedin.com/..." required="">
+        </div>
+        <div class="admin-form-group">
+          <label for="admin-facebook">Facebook URL:</label>
+          <input type="url" id="admin-facebook" placeholder="https://www.facebook.com/..." required="">
+        </div>
+        <div class="admin-modal-actions">
+          <button type="button" id="admin-footer-cancel" class="button button-secondary">Cancel</button>
+          <button type="submit" class="button button-primary">Save Links</button>
+        </div>
+      </form>
     </div>
   </div>
 

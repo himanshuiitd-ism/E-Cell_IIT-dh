@@ -835,6 +835,108 @@ function injectInSectionAddButtons() {
   if (typeof lucide !== "undefined") lucide.createIcons();
 }
 
+// Admin Footer Editor
+const adminFooterModal = document.getElementById("admin-footer-modal");
+const adminFooterForm = document.getElementById("admin-footer-form");
+const adminFooterCancel = document.getElementById("admin-footer-cancel");
+const adminEditFooterBtn = document.getElementById("admin-edit-footer");
+const adminGoTicketsBtn = document.getElementById("admin-go-tickets");
+
+// Triple-click detection on Buy Tickets buttons
+let buyTicketsClickCount = 0;
+let buyTicketsClickTimer = null;
+
+function handleBuyTicketsTripleClick(e) {
+  buyTicketsClickCount++;
+  
+  if (buyTicketsClickCount === 1) {
+    buyTicketsClickTimer = setTimeout(() => {
+      buyTicketsClickCount = 0;
+    }, 500); // Reset counter after 500ms
+  }
+  
+  if (buyTicketsClickCount === 3) {
+    clearTimeout(buyTicketsClickTimer);
+    buyTicketsClickCount = 0;
+    // Navigate to tickets page on triple click
+    window.location.href = "/tickets.html";
+  }
+}
+
+// Open Footer Editor Modal
+adminEditFooterBtn?.addEventListener("click", () => {
+  // Load current social media URLs into form
+  const instaLink = document.querySelector('.social-links a[title="Instagram"]');
+  const twitterLink = document.querySelector('.social-links a[title="Twitter"]');
+  const linkedinLink = document.querySelector('.social-links a[title="LinkedIn"]');
+  const fbLink = document.querySelector('.social-links a[title="Facebook"]');
+  
+  document.getElementById("admin-instagram").value = instaLink?.getAttribute("href") || "";
+  document.getElementById("admin-twitter").value = twitterLink?.getAttribute("href") || "";
+  document.getElementById("admin-linkedin").value = linkedinLink?.getAttribute("href") || "";
+  document.getElementById("admin-facebook").value = fbLink?.getAttribute("href") || "";
+  
+  adminFooterModal.classList.add("open");
+});
+
+// Close Footer Editor Modal
+adminFooterCancel?.addEventListener("click", () => {
+  adminFooterModal.classList.remove("open");
+});
+
+// Save Footer Changes
+adminFooterForm?.addEventListener("submit", (e) => {
+  e.preventDefault();
+  
+  const instagramUrl = document.getElementById("admin-instagram").value;
+  const twitterUrl = document.getElementById("admin-twitter").value;
+  const linkedinUrl = document.getElementById("admin-linkedin").value;
+  const facebookUrl = document.getElementById("admin-facebook").value;
+  
+  // Update all footer links across the site
+  const socialLinks = document.querySelectorAll('.social-links a');
+  socialLinks.forEach((link) => {
+    const title = link.getAttribute("title");
+    if (title === "Instagram") link.setAttribute("href", instagramUrl);
+    if (title === "Twitter") link.setAttribute("href", twitterUrl);
+    if (title === "LinkedIn") link.setAttribute("href", linkedinUrl);
+    if (title === "Facebook") link.setAttribute("href", facebookUrl);
+  });
+  
+  adminFooterModal.classList.remove("open");
+  alert("Social media links updated! Don't forget to Save Changes to persist them.");
+});
+
+// Navigate to Tickets Page
+adminGoTicketsBtn?.addEventListener("click", () => {
+  window.location.href = "/tickets.html";
+});
+
+// Setup triple-click on all Buy Tickets buttons
+function setupBuyTicketsTripleClick() {
+  const buyTicketsButtons = document.querySelectorAll('a[href="/tickets.html"]');
+  buyTicketsButtons.forEach((btn) => {
+    if (btn.textContent.toLowerCase().includes("buy ticket")) {
+      btn.addEventListener("click", (e) => {
+        // Allow normal click to work, but count for triple-click
+        if (buyTicketsClickCount === 0) {
+          buyTicketsClickCount = 1;
+          buyTicketsClickTimer = setTimeout(() => {
+            buyTicketsClickCount = 0;
+          }, 500);
+        } else if (buyTicketsClickCount === 1) {
+          buyTicketsClickCount = 2;
+        } else if (buyTicketsClickCount === 2) {
+          buyTicketsClickCount = 3;
+          clearTimeout(buyTicketsClickTimer);
+          buyTicketsClickCount = 0;
+          // Triple click detected - will navigate naturally since href is set
+        }
+      });
+    }
+  });
+}
+
 // Exit Admin Mode
 adminExitBtn.addEventListener("click", () => {
   if (
@@ -1003,6 +1105,14 @@ adminSaveBtn.addEventListener("click", async () => {
     if (typeof lucide !== "undefined") lucide.createIcons();
   }
 });
+
+// Initialize triple-click handler for Buy Tickets buttons when page loads
+document.addEventListener("DOMContentLoaded", setupBuyTicketsTripleClick);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", setupBuyTicketsTripleClick);
+} else {
+  setupBuyTicketsTripleClick();
+}
 
 function setupTeamCarousel() {
   const track = document.getElementById("team-track");

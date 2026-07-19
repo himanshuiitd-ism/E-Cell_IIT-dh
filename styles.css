@@ -1683,6 +1683,38 @@ body.admin-mode .team-track {
   min-height: 1.2rem;
 }
 
+.admin-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.admin-form-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
+.admin-form-group input[type="url"] {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--text);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.admin-form-group input[type="url"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(255, 118, 0, 0.2);
+}
+
 /* Floating Control Bar */
 .admin-bar {
   position: fixed;
