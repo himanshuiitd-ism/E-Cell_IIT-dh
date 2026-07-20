@@ -378,6 +378,7 @@ adminLoginForm.addEventListener("submit", async (e) => {
       if (data.success) {
         isAdminActive = true;
         sessionStorage.setItem("admin_authenticated", "true");
+        sessionStorage.setItem("admin_token", passcodeValue); // retained for API auth headers
         adminModal.classList.remove("open");
         enterAdminMode();
         return;
@@ -398,19 +399,10 @@ adminLoginForm.addEventListener("submit", async (e) => {
   }
 
   // Fallback for static servers (like VS Code Live Server on port 5501)
+  // NOTE: passcode check is intentionally server-side only; direct offline editing is not supported.
   if (connectionFailed) {
-    const correctPasscode = "IITDHANBADECELL2620";
-    if (passcodeValue === correctPasscode) {
-      isAdminActive = true;
-      sessionStorage.setItem("admin_authenticated", "true");
-      adminModal.classList.remove("open");
-      enterAdminMode();
-      alert(
-        "Authenticated via client-side fallback (Live Server detected).\n\nNOTE: You can edit the page, but 'Save Changes' will only work if you run the Node.js server (using 'npm start' on port 3000).",
-      );
-    } else {
-      adminLoginError.textContent = "Invalid passcode";
-    }
+    adminLoginError.textContent =
+      "Cannot connect to the server. Please ensure the Node.js server is running (npm start) and try again.";
   }
 });
 
@@ -1004,19 +996,57 @@ adminSaveBtn.addEventListener("click", async () => {
     el.removeAttribute("contenteditable");
   });
 
+  // Remove the dynamically-injected social media popover overlay
+  const socialPopover = docClone.querySelector("#admin-social-popover");
+  if (socialPopover) socialPopover.remove();
+
+  // Remove browser extension injected elements (Apollo, etc.)
+  docClone.querySelectorAll(".extension-opener-icon").forEach((el) => el.remove());
+  docClone.querySelectorAll("[id^='zp-']").forEach((el) => el.remove());
+  docClone.querySelectorAll(".apolloio-css-vars-reset").forEach((el) => el.remove());
+  docClone.querySelectorAll(".zp").forEach((el) => {
+    // Only remove elements that are clearly Apollo extension widgets (no src content)
+    if (el.closest(".extension-opener-icon") || el.id.startsWith("zp-")) el.remove();
+  });
+
+  // Strip browser extension attributes from the root <html> element
+  const htmlEl = docClone.querySelector("html") || docClone;
+  [
+    "data-extension-installed",
+    "data-extension-id",
+    "data-extension-version",
+    "data-extension-manifest-version",
+  ].forEach((attr) => htmlEl.removeAttribute(attr));
+
+  // Strip any other data-extension-* attributes dynamically
+  Array.from(htmlEl.attributes || []).forEach((attr) => {
+    if (attr.name.startsWith("data-extension")) htmlEl.removeAttribute(attr.name);
+  });
+
   // Remove dynamic cursor and star elements
   docClone
     .querySelectorAll(".cursor-dot, .cursor-ring, .cursor-glow, .star")
     .forEach((el) => el.remove());
 
-  // Remove temporary admin tooltips
-  docClone
-    .querySelectorAll(
-      ".button-primary, .button-secondary, .iic-badge, .event-link",
-    )
-    .forEach((link) => {
-      link.removeAttribute("title");
+  // Remove temporary admin tooltips set by Double-click hint
+  docClone.querySelectorAll("[title*='Double-click']").forEach((el) => {
+    el.removeAttribute("title");
+  });
+
+  // Remove live-server injected HTML comment nodes
+  (function stripLiveServerComments(node) {
+    const childNodes = Array.from(node.childNodes);
+    childNodes.forEach((child) => {
+      if (child.nodeType === 8 /* COMMENT_NODE */) {
+        const text = child.nodeValue || "";
+        if (text.includes("live-server") || text.includes("Code injected")) {
+          child.remove();
+        }
+      } else if (child.childNodes && child.childNodes.length) {
+        stripLiveServerComments(child);
+      }
     });
+  })(docClone);
 
   // Remove temporary scroll reveal visible states so animations trigger on fresh load
   docClone.querySelectorAll(".scroll-reveal").forEach((el) => {
@@ -1097,9 +1127,13 @@ adminSaveBtn.addEventListener("click", async () => {
   const finalHtml = "<!DOCTYPE html>\n" + docClone.outerHTML;
 
   try {
+    const adminToken = sessionStorage.getItem("admin_token") || "";
     const response = await fetch(`${API_BASE_URL}/api/save`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Admin-Passcode": adminToken,
+      },
       body: JSON.stringify({
         html: finalHtml,
         page_path: window.location.pathname,

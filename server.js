@@ -59,33 +59,11 @@ const initDb = async () => {
         END $$;
       `);
 
-      // Keep database HTML content synchronized with disk for the new features
+      // Seed index.html if missing in site_content
       const resHome = await query(
-        "SELECT html FROM site_content WHERE page_path = '/'",
+        "SELECT 1 FROM site_content WHERE page_path = '/'",
       );
-      if (resHome.rows.length > 0) {
-        const dbHtml = resHome.rows[0].html;
-        if (
-          !dbHtml.includes("/tickets.html") ||
-          !dbHtml.includes("admin-go-tickets") ||
-          !dbHtml.includes("QUICK LINKS") ||
-          !dbHtml.includes("/members.html") ||
-          dbHtml.includes('id="team"') ||
-          dbHtml.includes('title="Double-click')
-        ) {
-          console.log(
-            "Database HTML is outdated (missing tickets/admin elements/updated footer). Overwriting with fresh index.html...",
-          );
-          const freshHtml = fs.readFileSync(
-            path.join(__dirname, "index.html"),
-            "utf8",
-          );
-          await query(
-            "INSERT INTO site_content (page_path, html) VALUES ('/', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
-            [freshHtml],
-          );
-        }
-      } else {
+      if (resHome.rows.length === 0) {
         console.log(
           "Database missing index.html. Seeding with local index.html...",
         );
@@ -94,36 +72,49 @@ const initDb = async () => {
           "utf8",
         );
         await query(
-          "INSERT INTO site_content (page_path, html) VALUES ('/', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
+          "INSERT INTO site_content (page_path, html) VALUES ('/', $1) ON CONFLICT (page_path) DO NOTHING",
           [freshHtml],
         );
       }
 
+      // Seed members.html if missing in site_content
       const resMembers = await query(
-        "SELECT html FROM site_content WHERE page_path = '/members.html'",
+        "SELECT 1 FROM site_content WHERE page_path = '/members.html'",
       );
-      if (
-        resMembers.rows.length === 0 ||
-        !resMembers.rows[0].html.includes("/tickets.html") ||
-        !resMembers.rows[0].html.includes("admin-go-tickets") ||
-        !resMembers.rows[0].html.includes("QUICK LINKS") ||
-        resMembers.rows[0].html.includes('title="Double-click')
-      ) {
+      if (resMembers.rows.length === 0) {
         console.log(
-          "Database members.html is missing or outdated. Overwriting with fresh members.html...",
+          "Database missing members.html. Seeding with local members.html...",
         );
         const freshHtml = fs.readFileSync(
           path.join(__dirname, "members.html"),
           "utf8",
         );
         await query(
-          "INSERT INTO site_content (page_path, html) VALUES ('/members.html', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
+          "INSERT INTO site_content (page_path, html) VALUES ('/members.html', $1) ON CONFLICT (page_path) DO NOTHING",
           [freshHtml],
         );
       }
 
+      // Seed tickets.html if missing in site_content
+      const resTickets = await query(
+        "SELECT 1 FROM site_content WHERE page_path = '/tickets.html'",
+      );
+      if (resTickets.rows.length === 0) {
+        const ticketsPath = path.join(__dirname, "tickets.html");
+        if (fs.existsSync(ticketsPath)) {
+          console.log(
+            "Database missing tickets.html. Seeding with local tickets.html...",
+          );
+          const freshHtml = fs.readFileSync(ticketsPath, "utf8");
+          await query(
+            "INSERT INTO site_content (page_path, html) VALUES ('/tickets.html', $1) ON CONFLICT (page_path) DO NOTHING",
+            [freshHtml],
+          );
+        }
+      }
+
       console.log(
-        "Database initialized, migrated, and synchronized successfully.",
+        "Database initialized and migrated successfully.",
       );
     } else {
       console.warn(
@@ -145,11 +136,32 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept",
+    "Origin, X-Requested-With, Content-Type, Accept, X-Admin-Passcode",
   );
   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
+  if (req.method === "OPTIONS") return res.sendStatus(200);
   next();
 });
+
+// Admin authentication middleware — rejects mutating API calls without a valid passcode.
+// The passcode can be sent in the JSON body ({ passcode: "..." }) OR via the
+// X-Admin-Passcode request header so all admin write calls are protected.
+const requireAdmin = (req, res, next) => {
+  const correctPasscode = process.env.ADMIN_PASSCODE;
+  if (!correctPasscode) {
+    // Server is misconfigured — don't allow anything
+    return res.status(500).json({ success: false, message: "Server configuration error: ADMIN_PASSCODE not set." });
+  }
+  const supplied =
+    (req.body && req.body.passcode) ||
+    req.headers["x-admin-passcode"] ||
+    "";
+  if (supplied !== correctPasscode) {
+    return res.status(401).json({ success: false, message: "Unauthorized: Invalid or missing admin passcode." });
+  }
+  next();
+};
+
 
 // Serve static assets from public folder
 app.use("/public", express.static(path.join(__dirname, "public")));
@@ -196,6 +208,7 @@ app.post("/api/admin/reset-layout", async (req, res) => {
   try {
     const freshIndex = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
     const freshMembers = fs.readFileSync(path.join(__dirname, "members.html"), "utf8");
+    const freshTickets = fs.readFileSync(path.join(__dirname, "tickets.html"), "utf8");
 
     await query(
       "INSERT INTO site_content (page_path, html) VALUES ('/', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
@@ -204,6 +217,10 @@ app.post("/api/admin/reset-layout", async (req, res) => {
     await query(
       "INSERT INTO site_content (page_path, html) VALUES ('/members.html', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
       [freshMembers]
+    );
+    await query(
+      "INSERT INTO site_content (page_path, html) VALUES ('/tickets.html', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
+      [freshTickets]
     );
 
     return res.json({
@@ -218,8 +235,8 @@ app.post("/api/admin/reset-layout", async (req, res) => {
   }
 });
 
-// Image upload endpoint
-app.post("/api/upload-image", async (req, res) => {
+// Image upload endpoint (admin-only)
+app.post("/api/upload-image", requireAdmin, async (req, res) => {
   const { name, base64Data } = req.body;
   if (!name || !base64Data) {
     return res
@@ -338,8 +355,8 @@ function extractMembers(html) {
   return cards;
 }
 
-// Save updated members endpoint
-app.post("/api/save", async (req, res) => {
+// Save updated members endpoint (admin-only)
+app.post("/api/save", requireAdmin, async (req, res) => {
   let { html, page_path } = req.body;
   if (!html) {
     return res
@@ -352,6 +369,7 @@ app.post("/api/save", async (req, res) => {
   if (page_path === "/admin/iit_ism_1290e-summit") page_path = "/";
   if (page_path === "/members" || page_path === "/admin/members")
     page_path = "/members.html";
+  if (page_path === "/tickets") page_path = "/tickets.html";
 
   try {
     // 1. Process base64 images inside HTML and upload them to Cloudinary
@@ -405,15 +423,22 @@ app.post("/api/save", async (req, res) => {
     }
 
     // Write content back to local file as fallback and sync for local git
-    const localFilename = page_path === "/" ? "index.html" : "members.html";
-    const filePath = path.join(__dirname, localFilename);
-    fs.writeFile(filePath, html, "utf8", (err) => {
-      if (err) {
-        console.error(`Error writing ${localFilename} locally:`, err);
-      } else {
-        console.log(`${localFilename} updated successfully locally.`);
-      }
-    });
+    const localFileMap = {
+      "/": "index.html",
+      "/members.html": "members.html",
+      "/tickets.html": "tickets.html",
+    };
+    const localFilename = localFileMap[page_path] || null;
+    if (localFilename) {
+      const filePath = path.join(__dirname, localFilename);
+      fs.writeFile(filePath, html, "utf8", (err) => {
+        if (err) {
+          console.error(`Error writing ${localFilename} locally:`, err);
+        } else {
+          console.log(`${localFilename} updated successfully locally.`);
+        }
+      });
+    }
 
     return res.json({
       success: true,
@@ -501,7 +526,7 @@ app.get("/api/tickets", async (req, res) => {
   }
 });
 
-app.post("/api/tickets", async (req, res) => {
+app.post("/api/tickets", requireAdmin, async (req, res) => {
   const { name, description, price, features, availability } = req.body;
 
   if (!name || !description || !price) {
@@ -524,7 +549,7 @@ app.post("/api/tickets", async (req, res) => {
   }
 });
 
-app.put("/api/tickets/:id", async (req, res) => {
+app.put("/api/tickets/:id", requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { name, description, price, features, availability } = req.body;
 
@@ -556,7 +581,7 @@ app.put("/api/tickets/:id", async (req, res) => {
   }
 });
 
-app.delete("/api/tickets/:id", async (req, res) => {
+app.delete("/api/tickets/:id", requireAdmin, async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -601,7 +626,7 @@ app.get("/api/qr-code", async (req, res) => {
   }
 });
 
-app.post("/api/qr-code", async (req, res) => {
+app.post("/api/qr-code", requireAdmin, async (req, res) => {
   const { url } = req.body;
   if (!url) {
     return res
@@ -829,7 +854,7 @@ app.post("/api/orders", async (req, res) => {
   }
 });
 
-app.get("/api/orders", async (req, res) => {
+app.get("/api/orders", requireAdmin, async (req, res) => {
   try {
     const result = await query(
       "SELECT * FROM orders ORDER BY created_at DESC",
@@ -843,14 +868,26 @@ app.get("/api/orders", async (req, res) => {
   }
 });
 
-// Serve tickets.html
-app.get("/tickets", (req, res) => {
+// Serve tickets.html from DB or fallback to file system
+const serveTicketsPage = async (req, res) => {
+  try {
+    const result = await query(
+      "SELECT html FROM site_content WHERE page_path = '/tickets.html'",
+    );
+    if (result.rows.length > 0) {
+      return res.send(result.rows[0].html);
+    }
+  } catch (err) {
+    console.error(
+      "Failed to query tickets HTML from database, serving local file:",
+      err,
+    );
+  }
   res.sendFile(path.join(__dirname, "tickets.html"));
-});
+};
 
-app.get("/tickets.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "tickets.html"));
-});
+app.get("/tickets", serveTicketsPage);
+app.get("/tickets.html", serveTicketsPage);
 
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
