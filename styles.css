@@ -1460,8 +1460,6 @@ body::before {
 }
 
 .featured-members-grid .featured-member-card {
-  width: 240px;
-  max-width: 240px;
   border-color: rgba(255, 118, 0, 0.35);
   background: linear-gradient(160deg, rgba(255, 118, 0, 0.06) 0%, var(--surface) 60%);
   box-shadow: 0 0 0 1px rgba(255, 118, 0, 0.1), 0 8px 32px rgba(255, 118, 0, 0.08);
@@ -1480,9 +1478,8 @@ body::before {
   opacity: 0.7;
 }
 
-.featured-members-grid .featured-member-card .member-image-wrapper {
-  padding-top: 80%; /* Slightly less square for leadership display */
-}
+/* Featured cards use the same 1:1 image ratio as regular cards — no override needed */
+
 
 .featured-members-grid .featured-member-card:hover {
   transform: translateY(-6px);
