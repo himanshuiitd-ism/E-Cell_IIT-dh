@@ -250,6 +250,8 @@ async function loadMembers() {
           card.setAttribute("data-twitter", member.twitter || "");
           card.setAttribute("data-linkedin", member.linkedin || "");
           card.setAttribute("data-reddit", member.reddit || "");
+          card.setAttribute("data-featured", member.is_featured ? "true" : "false");
+          card.setAttribute("data-featured-order", member.featured_order || 0);
 
           let socialsHtml = "";
           if (member.instagram)
@@ -276,10 +278,55 @@ async function loadMembers() {
           track.appendChild(card);
         });
       }
+      // Render the featured members section
+      renderFeaturedSection();
     }
   } catch (err) {
     console.error("Error loading team members:", err);
   }
+}
+
+/**
+ * Reads all member cards from #team-track and populates the #featured-members-section
+ * with cards that have data-featured="true", sorted by data-featured-order.
+ */
+function renderFeaturedSection() {
+  const featuredSection = document.getElementById("featured-members-section");
+  const featuredGrid = document.getElementById("featured-members-grid");
+  if (!featuredSection || !featuredGrid) return;
+
+  const track = document.getElementById("team-track");
+  if (!track) return;
+
+  // Gather all non-cloned cards that are featured
+  const allCards = Array.from(track.querySelectorAll(".member-card:not(.cloned)"));
+  const featuredCards = allCards
+    .filter((c) => c.getAttribute("data-featured") === "true")
+    .sort((a, b) => {
+      const oa = parseInt(a.getAttribute("data-featured-order") || "0", 10);
+      const ob = parseInt(b.getAttribute("data-featured-order") || "0", 10);
+      return oa - ob;
+    });
+
+  featuredGrid.innerHTML = "";
+
+  if (featuredCards.length === 0) {
+    featuredSection.style.display = "none";
+    return;
+  }
+
+  featuredSection.style.display = "block";
+
+  featuredCards.forEach((card) => {
+    // Clone for display purposes only (we do NOT move cards out of the track)
+    const clone = card.cloneNode(true);
+    clone.classList.add("featured-member-card");
+    clone.removeAttribute("contenteditable");
+    clone.querySelectorAll("[contenteditable]").forEach((el) => el.removeAttribute("contenteditable"));
+    // Remove any admin overlays from the clone
+    clone.querySelectorAll(".admin-delete-btn, .admin-image-upload-overlay, .admin-social-editor, .admin-featured-btn").forEach((el) => el.remove());
+    featuredGrid.appendChild(clone);
+  });
 }
 
 async function initTeam() {
@@ -561,6 +608,9 @@ function enterAdminMode() {
   // Attach social media double-click highlight popover editor
   setupSocialDoubleClickEditor();
 
+  // Attach featured member toggle buttons
+  setupFeaturedToggles();
+
   // Change cursor style in admin mode to default since it's hard to edit text with custom pointer
   document.body.style.cursor = "default";
   const customDot = document.querySelector(".cursor-dot");
@@ -746,6 +796,13 @@ function injectInSectionAddButtons() {
     const btn = createAddButton("Add Team Member", "user-plus", () => {
       const newCard = document.createElement("div");
       newCard.className = "member-card";
+      newCard.setAttribute("data-instagram", "");
+      newCard.setAttribute("data-facebook", "");
+      newCard.setAttribute("data-twitter", "");
+      newCard.setAttribute("data-linkedin", "");
+      newCard.setAttribute("data-reddit", "");
+      newCard.setAttribute("data-featured", "false");
+      newCard.setAttribute("data-featured-order", "0");
       newCard.innerHTML = `
         <div class="member-image-wrapper">
           <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80" alt="New Member" class="member-img" />
@@ -759,6 +816,7 @@ function injectInSectionAddButtons() {
       addDeleteButtons();
       setupImageUploads();
       setupSocialEditors();
+      setupFeaturedToggles();
       newCard.scrollIntoView({ behavior: "smooth" });
     });
     teamTrack.appendChild(btn);
@@ -992,6 +1050,12 @@ adminSaveBtn.addEventListener("click", async () => {
   docClone
     .querySelectorAll(".admin-social-editor")
     .forEach((editor) => editor.remove());
+  docClone
+    .querySelectorAll(".admin-featured-btn")
+    .forEach((btn) => btn.remove());
+  docClone
+    .querySelectorAll(".admin-featured-order-controls")
+    .forEach((el) => el.remove());
   docClone.querySelectorAll("[contenteditable]").forEach((el) => {
     el.removeAttribute("contenteditable");
   });
@@ -1312,6 +1376,131 @@ function setupSocialEditors() {
   });
 }
 
+/**
+ * Injects a "Mark as Featured / Unmark" toggle button on each member card.
+ * Featured members appear in the Leadership section at the top.
+ * Admin can also shift a card's featured_order up/down to reorder the leadership grid.
+ */
+function setupFeaturedToggles() {
+  // Remove any existing toggle buttons first
+  document.querySelectorAll(".admin-featured-btn").forEach((btn) => btn.remove());
+  document.querySelectorAll(".admin-featured-order-controls").forEach((el) => el.remove());
+
+  document.querySelectorAll("#team-track .member-card:not(.cloned)").forEach((card) => {
+    const isFeatured = card.getAttribute("data-featured") === "true";
+    const featuredOrder = parseInt(card.getAttribute("data-featured-order") || "0", 10);
+
+    // --- Feature toggle button ---
+    const toggleBtn = document.createElement("button");
+    toggleBtn.className = "admin-featured-btn" + (isFeatured ? " is-featured" : "");
+    toggleBtn.type = "button";
+    toggleBtn.innerHTML = isFeatured
+      ? `<span>✓ Featured (Leadership)</span>`
+      : `<span>☆ Mark as Featured</span>`;
+    toggleBtn.title = isFeatured
+      ? "Click to remove from Leadership section"
+      : "Click to add to Leadership section at the top";
+
+    toggleBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const currentlyFeatured = card.getAttribute("data-featured") === "true";
+      if (currentlyFeatured) {
+        card.setAttribute("data-featured", "false");
+        card.setAttribute("data-featured-order", "0");
+      } else {
+        // Assign next available featured order
+        const existingFeatured = Array.from(
+          document.querySelectorAll("#team-track .member-card:not(.cloned)[data-featured='true']")
+        );
+        const maxOrder = existingFeatured.reduce((max, c) => {
+          return Math.max(max, parseInt(c.getAttribute("data-featured-order") || "0", 10));
+        }, -1);
+        card.setAttribute("data-featured", "true");
+        card.setAttribute("data-featured-order", String(maxOrder + 1));
+      }
+      // Refresh toggles and featured section
+      setupFeaturedToggles();
+      renderFeaturedSection();
+      alert(
+        card.getAttribute("data-featured") === "true"
+          ? "Member added to Leadership section! Use ↑↓ buttons to reorder. Remember to Save Changes."
+          : "Member removed from Leadership section. Remember to Save Changes."
+      );
+    });
+
+    // --- Order controls (only shown when featured) ---
+    if (isFeatured) {
+      const orderControls = document.createElement("div");
+      orderControls.className = "admin-featured-order-controls";
+      orderControls.innerHTML = `
+        <span class="featured-order-label">Position: ${featuredOrder + 1}</span>
+        <button type="button" class="featured-order-btn" data-dir="up" title="Move left / earlier">↑</button>
+        <button type="button" class="featured-order-btn" data-dir="down" title="Move right / later">↓</button>
+      `;
+
+      orderControls.querySelectorAll(".featured-order-btn").forEach((ob) => {
+        ob.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const dir = ob.getAttribute("data-dir");
+          const currentOrder = parseInt(card.getAttribute("data-featured-order") || "0", 10);
+
+          // Find the sibling featured card in that direction
+          const allFeatured = Array.from(
+            document.querySelectorAll("#team-track .member-card:not(.cloned)[data-featured='true']")
+          ).sort((a, b) => {
+            return (
+              parseInt(a.getAttribute("data-featured-order") || "0", 10) -
+              parseInt(b.getAttribute("data-featured-order") || "0", 10)
+            );
+          });
+
+          const idx = allFeatured.indexOf(card);
+          const swapIdx = dir === "up" ? idx - 1 : idx + 1;
+
+          if (swapIdx >= 0 && swapIdx < allFeatured.length) {
+            const swapCard = allFeatured[swapIdx];
+            const swapOrder = parseInt(swapCard.getAttribute("data-featured-order") || "0", 10);
+            card.setAttribute("data-featured-order", String(swapOrder));
+            swapCard.setAttribute("data-featured-order", String(currentOrder));
+          }
+
+          setupFeaturedToggles();
+          renderFeaturedSection();
+        });
+      });
+
+      orderControls.addEventListener("click", (e) => e.stopPropagation());
+
+      const info = card.querySelector(".member-info");
+      if (info) {
+        const socialEditor = info.querySelector(".admin-social-editor");
+        if (socialEditor) {
+          info.insertBefore(orderControls, socialEditor);
+        } else {
+          info.appendChild(orderControls);
+        }
+      } else {
+        card.appendChild(orderControls);
+      }
+    }
+
+    const info = card.querySelector(".member-info");
+    if (info) {
+      // Insert toggle btn before order controls or social editor
+      const insertBefore = info.querySelector(".admin-featured-order-controls") ||
+                           info.querySelector(".admin-social-editor");
+      if (insertBefore) {
+        info.insertBefore(toggleBtn, insertBefore);
+      } else {
+        info.appendChild(toggleBtn);
+      }
+    } else {
+      card.appendChild(toggleBtn);
+    }
+  });
+}
+
+
 function updateCardSocialsHTML(card) {
   let socialsContainer = card.querySelector(".member-socials");
   if (!socialsContainer) {
@@ -1326,6 +1515,7 @@ function updateCardSocialsHTML(card) {
         info.appendChild(socialsContainer);
       }
     } else {
+
       card.appendChild(socialsContainer);
     }
   }

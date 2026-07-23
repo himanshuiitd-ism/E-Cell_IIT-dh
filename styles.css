@@ -1433,6 +1433,134 @@ body::before {
   width: 100%;
 }
 
+/* --- FEATURED / LEADERSHIP MEMBERS SECTION --- */
+.featured-members-section {
+  padding: 2.5rem 0 1rem;
+  border-bottom: 1px solid rgba(255, 118, 0, 0.12);
+  background: linear-gradient(180deg, rgba(255, 118, 0, 0.04) 0%, transparent 100%);
+}
+
+.featured-members-label {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 1.5rem;
+  opacity: 0.8;
+}
+
+.featured-members-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+  padding: 0;
+}
+
+.featured-members-grid .featured-member-card {
+  width: 240px;
+  max-width: 240px;
+  border-color: rgba(255, 118, 0, 0.35);
+  background: linear-gradient(160deg, rgba(255, 118, 0, 0.06) 0%, var(--surface) 60%);
+  box-shadow: 0 0 0 1px rgba(255, 118, 0, 0.1), 0 8px 32px rgba(255, 118, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.featured-members-grid .featured-member-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.7;
+}
+
+.featured-members-grid .featured-member-card .member-image-wrapper {
+  padding-top: 80%; /* Slightly less square for leadership display */
+}
+
+.featured-members-grid .featured-member-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--accent);
+  box-shadow: 0 16px 40px rgba(255, 118, 0, 0.18), 0 0 0 1px rgba(255, 118, 0, 0.25);
+}
+
+/* Admin: Featured toggle button */
+.admin-featured-btn {
+  display: block;
+  width: 100%;
+  margin: 0.6rem 0 0.25rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 200, 50, 0.5);
+  background: rgba(255, 200, 50, 0.06);
+  color: rgba(255, 200, 50, 0.85);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  letter-spacing: 0.03em;
+}
+
+.admin-featured-btn:hover {
+  background: rgba(255, 200, 50, 0.14);
+  border-color: rgba(255, 200, 50, 0.8);
+  color: #ffd000;
+}
+
+.admin-featured-btn.is-featured {
+  border-style: solid;
+  border-color: rgba(255, 200, 50, 0.7);
+  background: rgba(255, 200, 50, 0.12);
+  color: #ffd000;
+}
+
+.admin-featured-btn.is-featured:hover {
+  background: rgba(220, 50, 50, 0.12);
+  border-color: rgba(220, 50, 50, 0.6);
+  color: #ff6060;
+}
+
+/* Admin: Featured order controls */
+.admin-featured-order-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0.2rem 0 0.4rem;
+  flex-wrap: wrap;
+}
+
+.featured-order-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.featured-order-btn {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.featured-order-btn:hover {
+  background: rgba(255, 118, 0, 0.12);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .team-container {
   overflow: hidden;
   width: 100%;

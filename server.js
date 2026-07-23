@@ -59,6 +59,19 @@ const initDb = async () => {
         END $$;
       `);
 
+      // Migration for featured member columns
+      await query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='is_featured') THEN
+            ALTER TABLE members ADD COLUMN is_featured BOOLEAN DEFAULT FALSE;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='members' AND column_name='featured_order') THEN
+            ALTER TABLE members ADD COLUMN featured_order INTEGER DEFAULT 0;
+          END IF;
+        END $$;
+      `);
+
       // Seed index.html if missing in site_content
       const resHome = await query(
         "SELECT 1 FROM site_content WHERE page_path = '/'",
@@ -194,46 +207,6 @@ app.post("/api/login", (req, res) => {
   }
 });
 
-// Reset layout endpoint to force restore site HTML to disk version
-app.post("/api/admin/reset-layout", async (req, res) => {
-  const { passcode } = req.body;
-  const correctPasscode = process.env.ADMIN_PASSCODE;
-
-  if (passcode !== correctPasscode) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Invalid passcode" });
-  }
-
-  try {
-    const freshIndex = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
-    const freshMembers = fs.readFileSync(path.join(__dirname, "members.html"), "utf8");
-    const freshTickets = fs.readFileSync(path.join(__dirname, "tickets.html"), "utf8");
-
-    await query(
-      "INSERT INTO site_content (page_path, html) VALUES ('/', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
-      [freshIndex]
-    );
-    await query(
-      "INSERT INTO site_content (page_path, html) VALUES ('/members.html', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
-      [freshMembers]
-    );
-    await query(
-      "INSERT INTO site_content (page_path, html) VALUES ('/tickets.html', $1) ON CONFLICT (page_path) DO UPDATE SET html = EXCLUDED.html, updated_at = NOW()",
-      [freshTickets]
-    );
-
-    return res.json({
-      success: true,
-      message: "Site layout reset successfully to latest codebase version.",
-    });
-  } catch (err) {
-    console.error("Error resetting layout:", err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Failed to reset layout: " + err.message });
-  }
-});
 
 // Image upload endpoint (admin-only)
 app.post("/api/upload-image", requireAdmin, async (req, res) => {
@@ -337,6 +310,12 @@ function extractMembers(html) {
     const linkedin = extractAttr("linkedin");
     const reddit = extractAttr("reddit");
 
+    // Extract featured attributes
+    const featuredMatch = attributes.match(/data-featured=["']([^"']*)["']/);
+    const is_featured = featuredMatch ? featuredMatch[1] === "true" : false;
+    const featuredOrderMatch = attributes.match(/data-featured-order=["']([^"']*)["']/);
+    const featured_order = featuredOrderMatch ? parseInt(featuredOrderMatch[1], 10) || 0 : 0;
+
     if (name) {
       cards.push({
         name,
@@ -347,6 +326,8 @@ function extractMembers(html) {
         twitter,
         linkedin,
         reddit,
+        is_featured,
+        featured_order,
         section: "team",
         display_order: order++,
       });
@@ -391,7 +372,7 @@ app.post("/api/save", requireAdmin, async (req, res) => {
 
         for (const m of members) {
           await client.query(
-            "INSERT INTO members (name, role, image_url, section, display_order, instagram, facebook, twitter, linkedin, reddit) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+            "INSERT INTO members (name, role, image_url, section, display_order, instagram, facebook, twitter, linkedin, reddit, is_featured, featured_order) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
             [
               m.name,
               m.role,
@@ -403,6 +384,8 @@ app.post("/api/save", requireAdmin, async (req, res) => {
               m.twitter || "",
               m.linkedin || "",
               m.reddit || "",
+              m.is_featured || false,
+              m.featured_order || 0,
             ],
           );
         }
@@ -457,7 +440,7 @@ app.post("/api/save", requireAdmin, async (req, res) => {
 app.get("/api/members", async (req, res) => {
   try {
     const result = await query(
-      "SELECT name, role, image_url, section, display_order, instagram, facebook, twitter, linkedin, reddit FROM members ORDER BY display_order ASC",
+      "SELECT name, role, image_url, section, display_order, instagram, facebook, twitter, linkedin, reddit, is_featured, featured_order FROM members ORDER BY display_order ASC",
     );
     return res.json({ success: true, members: result.rows });
   } catch (err) {
